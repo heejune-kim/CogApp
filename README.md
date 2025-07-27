@@ -19,15 +19,17 @@ npm install -D webpack webpack-cli html-webpack-plugin webpack-dev-server
 
 
 # Initialize typescript transpiler
-npx tsc --init
+npx tsc --init  
 npm install --save-dev electron-builder
 
 
 # Build executable from python script
 npm run python:build
 
+
 # Integrate and build Setup.exe
 npx electron-builder
+
 
 # Run debug mode
 npm start
