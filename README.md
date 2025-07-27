@@ -27,3 +27,8 @@ npx electron-builder
 
 # Run debug mode
 npm start
+
+
+# After clone git repository
+npm install
+npm run python:build
