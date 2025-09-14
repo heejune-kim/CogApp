@@ -1,9 +1,19 @@
+import './index.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+//import GalaxyOnChat from './galaxy';
+//import GalaxyOnChat from '../components/MainScreen';
+import GalaxyOnChat from '../components/Service1';
+//import { BrowserRouter as Router } from "react-router-dom";
+import { HashRouter as Router } from "react-router-dom";
 //import './styles.css'; // 필요 시
 
 function App() {
-  return <h1>안녕, Electron + React + TypeScript!</h1>;
+  return (
+    <Router>
+      <GalaxyOnChat />
+    </Router>
+  );
 }
 
 const container = document.getElementById('root')!;

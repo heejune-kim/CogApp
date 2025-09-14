@@ -1,0 +1,136 @@
+/* GalaxyOnChat.css */
+.galaxy-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  color: #4b5563;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* Body */
+.body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+}
+
+.card {
+  width: 100%;
+  max-width: 600px;
+  background: #f9fafb;
+  border: none;
+  box-shadow: none;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.greeting {
+  font-size: 18px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* Buttons */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chip {
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 14px;
+  color: #374151;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  /* ✅ 밑줄 제거 */
+  text-decoration: none;
+}
+
+.chip:hover {
+  background: #f3f4f6;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.input-container {
+  flex: 1;
+}
+
+.chat-input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.chat-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+}
+
+.send-button {
+  margin-left: 8px;
+  padding: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: background 0.2s ease;
+}
+
+.send-button:hover {
+  background: #2563eb;
+}

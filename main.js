@@ -1,17 +1,80 @@
-const { app, BrowserWindow } = require('electron');
-const { spawn } = require('child_process');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { spawn, exec } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 let pyProc = null;
 
+const resolvePreloadPath = () => {
+  const candidates = [
+    //path.join(__dirname, 'preload.ts'),
+    path.join(__dirname, 'dist', 'preload.js'),
+    path.join(__dirname, 'preload.js'),
+    //path.join(process.resourcesPath ?? __dirname, 'preload.js'),
+    //path.join(process.resourcesPath ?? __dirname, 'preload.js'),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      console.log(`Using preload script at: ${p}`);
+      return p;
+    }
+  }
+  throw new Error(`preload.js not found\n${candidates.join('\n')}`);
+};
+
+function killPython(proc) {
+  if (proc && proc.pid) {
+    try {
+      console.log("Killing Python process:", proc.pid);
+      proc.kill('SIGKILL');
+      proc.kill('SIGKILL');
+      exec(`taskkill /pid ${proc.pid} /T /F`, (err) => {
+        if (err) {
+          console.error("Failed to kill Python process:", err);
+        } else {
+          console.log("✅ Python process killed");
+        }
+      });
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  }
+}
+
 function createWindow() {
-  const win = new BrowserWindow({ /* 옵션 */ });
+  const win = new BrowserWindow(
+    {
+      webPreferences: {
+        preload: resolvePreloadPath(),
+        contextIsolation: true,
+        nodeIntegration: false,
+        zoomFactor: 1.0,
+        sandbox: true,
+      },
+      /* 옵션 */
+      menu: null, // remove entire menubar
+    }
+  );
+  win.setMenuBarVisibility(false);
 
   if (process.env.NODE_ENV === 'development') {
     win.loadURL('http://localhost:3000');
+    win.webContents.openDevTools({ mode: 'detach' });
   } else {
     win.loadFile(path.join(__dirname, 'dist/renderer/index.html'));
   }
+  win.on('closed', () => {
+    console.log('Window closed');
+    if (pyProc) {
+      killPython(pyProc);
+      console.log('Window closed - A');
+      pyProc = null;
+    }
+    console.log('Window closed - B');
+    app.quit();
+    app.exit(0);
+    console.log('Window closed - end');
+  })
 }
 
 function startPython() {
@@ -25,6 +88,7 @@ function startPython() {
     ? path.join(__dirname, 'dist', 'server.exe')
     : path.join(process.resourcesPath, 'server.exe');
 
+  console.log('Starting Python process:', exePath);
   pyProc = spawn(exePath);
 
   pyProc.stdout.on('data', (data) => {
@@ -51,15 +115,28 @@ function createWindow() {
 */
 
 app.whenReady().then(() => {
-  startPython();
+  ipcMain.on("preload-log", (_, msg) => {
+    console.log(`[Preload] ${msg}`);
+  });
+  // ✅ 파일 다이얼로그 핸들러
+  ipcMain.handle('show-open-dialog', async (_e, options) => {
+    const win = BrowserWindow.getFocusedWindow() ?? undefined;
+    return dialog.showOpenDialog(win, options);
+  });
+
+  //startPython();
   createWindow();
 });
 
 app.on('window-all-closed', () => {
+  console.log('Window-all-closed closed');
   if (pyProc) {
-    pyProc.kill();
+    killPython(pyProc);
+    pyProc = null;
   }
   app.quit();
+  app.exit(0);
+  console.log('Window-all-closed closed - end');
 });
 
 app.on('activate', () => {
@@ -67,3 +144,4 @@ app.on('activate', () => {
     createWindow();
   }
 });
+

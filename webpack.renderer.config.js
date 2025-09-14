@@ -4,7 +4,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
-  entry: path.resolve(__dirname, 'src/renderer/index.tsx'),
+  entry: {
+    main: path.resolve(__dirname, 'src/renderer/index.tsx'),
+    // preload: path.resolve(__dirname, 'src/preload.ts'),
+  },
   output: {
     filename: 'renderer.js',
     path: path.resolve(__dirname, 'dist/renderer'),
@@ -21,9 +24,26 @@ module.exports = {
       },
       {
         test: /\.css$/,        // CSS 로더 예시
-        use: ['style-loader', 'css-loader'],
+        use: [
+          'style-loader',
+          { loader: "css-loader", options: { importLoaders: 1 } },
+          "postcss-loader",                 // ★ Tailwind 적용 포인트
+        ],
       },
       // 필요 시 이미지/폰트 로더 추가
+       // ✅ SVG는 URL로 (img src=... 용)
+      {
+        test: /\.svg$/i,
+        type: "asset/resource",
+        generator: { filename: "assets/[name][hash][ext]" },
+      },
+
+      // ✅ 나머지 이미지
+      {
+        test: /\.(png|jpe?g|gif|webp|avif)$/i, // <-- svg 제외!
+        type: "asset/resource",
+        generator: { filename: "assets/[name][hash][ext]" },
+      },
     ],
   },
   plugins: [

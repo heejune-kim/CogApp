@@ -38,3 +38,15 @@ npm start
 # After clone git repository
 npm install  
 npm run python:build
+
+
+
+
+
+# To use svg files as React components.
+npm install --save-dev @svgr/webpack
+
+# install tailwind
+npm i -D tailwindcss postcss autoprefixer postcss-loader
+npx tailwindcss init -p
+

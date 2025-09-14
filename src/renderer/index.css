@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* (선택) reset 보강 */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
