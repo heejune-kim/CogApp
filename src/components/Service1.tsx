@@ -254,33 +254,56 @@ const GalaxyOnChat: React.FC = () => {
           <img alt="" className="block max-w-none size-full" src={imgTitleBarPartsTitleBarCaptionControlButton2} />
         </div>
       </div>
+      {
+        // 하단 고정 안내 문구
+      }
       <div className="absolute bottom-5 content-stretch flex flex-col gap-2 items-center justify-start left-[340px] w-[664px]" data-node-id="1:404">
+        {
+          // Input area
+        }
         <div className="bg-white box-border content-stretch flex items-center justify-between overflow-clip px-5 py-2 relative rounded-[9999px] shrink-0 w-full" data-node-id="1:405">
+          {/* Icon for question */}
           <div className="relative shrink-0 size-8" data-name="prime:upload" data-node-id="1:406">
             <img alt="" className="block max-w-none size-full" src={imgPrimeUpload} />
           </div>
+          {/* Input text */}
+          <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black" data-node-id="1:410">
+            <input className="w-full outline-none" placeholder="무엇이든 물어보세요..." />
+          </div>
+          {/* Send button */}
           <div className="relative shrink-0 size-6" data-name="mynaui:send" data-node-id="1:411">
             <img alt="" className="block max-w-none size-full" src={imgMynauiSend} />
           </div>
           <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_4px_0px_inset_rgba(0,0,0,0.2)]" />
         </div>
+        {
+          // 안내 문구
+        }
         <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[#858585] text-[10px] text-center text-nowrap tracking-[-0.4px]" data-node-id="1:413">
           <p className="leading-[normal] whitespace-pre">{`Galaxy on Chat은 실수 할 수 있습니다. 중요 정보는 원문 문서를 재확인 해주세요. `}</p>
         </div>
       </div>
+      {
+        // 채팅 내용 예시
+      }
       <div className="absolute content-stretch flex gap-4 items-start justify-start left-[340px] top-[250px]" data-node-id="1:414">
+        {/* Icon for question */}
         <div className="bg-[position:50%_50%,_0%_0%] bg-size-[cover,auto] bg-white overflow-clip relative rounded-[16px] shrink-0 size-8" data-node-id="1:415" style={{ backgroundImage: `url('${imgFrame1000014255}')` }}>
           <div className="absolute left-[5px] size-[22px] top-[5px]" data-name="fluent:person-16-filled" data-node-id="1:416" />
         </div>
+        {/* Question text */}
         <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[16px] text-black w-[616px]" data-node-id="1:417">
           <p className="leading-[22px]">이번 상반기에 제안된 무기체계들은 현재의 위협 환경과 미래 전장 양상에 얼마나 효과적으로 대응 할 수 있는지 기대치를 알려줘</p>
         </div>
       </div>
+      {/* Input area */}
       <div className="absolute bg-white box-border content-stretch flex flex-col gap-4 items-start justify-start left-[340px] overflow-clip px-4 py-6 rounded-[24px] top-[314px] w-[664px]" data-node-id="1:418">
         <div className="content-stretch flex gap-4 items-start justify-start relative shrink-0 w-[632px]" data-node-id="1:419">
+          {/* Icon for answer */}
           <div className="relative shrink-0 size-8" data-name="prime:upload" data-node-id="1:420">
             <img alt="" className="block max-w-none size-full" src={imgPrimeUpload} />
           </div>
+          {/* Answer text */}
           <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black" data-node-id="1:425">
             <p className="mb-0">
               현재 제시된 상반기 무기체계들은 급변하는 미래 전장 양상에 대한 우리 군의 전략적 대응 의지를 명확히 보여주고 있습니다. 특히, 다음과 같은 핵심 변화에 효과적으로 대응할 것으로 기대됩니다.
@@ -292,7 +315,9 @@ const GalaxyOnChat: React.FC = () => {
               <br aria-hidden="true" className="" />
               <br aria-hidden="true" className="" />
             </p>
-            <p className="">2. 유·무인 복합체계(MUM-T) 전투 역량 강화: 특히 주목할 점은 유인-무인 복합체계 운용을 위한 기반 마련입니다. 정찰, 감시, 타격 등 다양한 임무에 투입될 무인 체계의 도입 및 기존 유인 전력과의 연동성 강화는 인명 피해를 최소화하면서도 작전 효율성을 극대화할 수 있는 미래 전장의 핵심 역량입니다. 이번 무기체계들은 이러한 유·무인 복합작전 수행 능력을 한 단계 끌어올릴 것으로 기대됩니다.</p>
+            {
+            //<p className="">2. 유·무인 복합체계(MUM-T) 전투 역량 강화: 특히 주목할 점은 유인-무인 복합체계 운용을 위한 기반 마련입니다. 정찰, 감시, 타격 등 다양한 임무에 투입될 무인 체계의 도입 및 기존 유인 전력과의 연동성 강화는 인명 피해를 최소화하면서도 작전 효율성을 극대화할 수 있는 미래 전장의 핵심 역량입니다. 이번 무기체계들은 이러한 유·무인 복합작전 수행 능력을 한 단계 끌어올릴 것으로 기대됩니다.</p>-->
+            }
           </div>
         </div>
       </div>
