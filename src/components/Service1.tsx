@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import './Service1.css';
 
 import imgImage8 from '../assets/image-8.png';
@@ -15,6 +15,8 @@ import imgPrimeUpload from '../assets/upload.svg';
 import imgMynauiSend from '../assets/send.svg';
 
 const { ipcRenderer } = window.require ? window.require('electron') : {};
+
+type ElectronFile = File & { path?: string }; // Electron이 File에 path를 붙여줌
 
 const sendFilePathToServer = async (filePath: string) => {
   await fetch('http://localhost:8000/set-rag-path/', {
@@ -33,6 +35,29 @@ const sendFilePathToServer = async (filePath: string) => {
 };
 
 const GalaxyOnChat: React.FC = () => {
+    const [paths, setPaths] = useState<string[]>([]);
+
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); // 필수: drop 허용
+  }, []);
+
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+
+    const files = Array.from(e.dataTransfer.files) as ElectronFile[];
+    //const filePaths = files.map(f => f.path ?? f.name); // 브라우저에선 path가 없지만 Electron에선 있음
+    console.log('files:', files);
+    const filePaths = files.map(f => f.name);
+    console.log('filePaths:', filePaths);
+    //alert(`파일 드롭됨: ${filePaths.join(', ')}`);
+    const _paths = files.map(f => window.electronAPI.getPathForFile(f));
+    console.log('_paths:', _paths);
+    sendFilePathToServer(_paths[0]);
+    //alert(`파일 드롭됨: ${_paths.join(', ')}`);
+    setPaths(_paths);
+    setFileName(files[0].name);
+  }, []);
+
   const [fileName, setFileName] = useState<string | null>(null);
 
   const handleOpenFile = async () => {
@@ -100,6 +125,7 @@ const GalaxyOnChat: React.FC = () => {
               <div
                 className="absolute font-['Inter:Medium',_'Noto_Sans_KR:Regular',_sans-serif] font-medium leading-[0] left-[112.33px] not-italic text-[#afafaf] text-[14px] top-[105px] w-[98.341px]"
                 data-node-id="1:364"
+                /*
                 onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
                 onDrop={e => {
                   e.preventDefault();
@@ -121,6 +147,9 @@ const GalaxyOnChat: React.FC = () => {
                     }
                   }
                 }}
+                */
+                onDragOver={onDragOver}
+                onDrop={onDrop}
               >
                 <p className="leading-[normal]">파일 끌어다 놓기</p>
               </div>

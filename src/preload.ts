@@ -1,5 +1,5 @@
 // preload.js
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 
 function logToMain(message: string) {
@@ -30,4 +30,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   removeAll: (channel: string) => ipcRenderer.removeAllListeners(channel),
   openFileDialog: (options: Electron.OpenDialogOptions) =>
     ipcRenderer.invoke('show-open-dialog', options),
+  getPathForFile: (file: File) => webUtils.getPathForFile(file),
 });

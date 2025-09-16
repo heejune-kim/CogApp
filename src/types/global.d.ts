@@ -19,6 +19,7 @@ declare global {
       invoke: (channel: string, data?: unknown) => Promise<any>;
       removeAll: (channel: string) => void;
       openFileDialog: (options: Electron.OpenDialogOptions) => Promise<any>;
+      getPathForFile: (file: File) => string;
     };
   }
   interface File {

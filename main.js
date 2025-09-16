@@ -74,7 +74,12 @@ function createWindow() {
     app.quit();
     app.exit(0);
     console.log('Window closed - end');
-  })
+  });
+
+  // 파일 드랍 시 페이지 네비게이션 되는 기본 동작 방지(보안/UX)
+  win.webContents.on('will-navigate', (e) => e.preventDefault());
+  win.webContents.on('drag-over', (e) => e.preventDefault());
+  win.webContents.on('drop', (e) => e.preventDefault());
 }
 
 function startPython() {
