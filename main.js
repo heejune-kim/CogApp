@@ -52,7 +52,11 @@ function createWindow() {
         sandbox: true,
       },
       /* 옵션 */
+      width: 1024,
+      height: 880,
       menu: null, // remove entire menubar
+      frame: false, // 창 테두리 제거
+      titleBarStyle: 'hidden', // 타이틀 바 숨김
     }
   );
   win.setMenuBarVisibility(false);
@@ -80,6 +84,15 @@ function createWindow() {
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   win.webContents.on('drag-over', (e) => e.preventDefault());
   win.webContents.on('drop', (e) => e.preventDefault());
+
+  // 창 크기 변경 이벤트
+  /*
+  win.on("resized", () => {
+    const [width, height] = win.getSize();
+    console.log(`Window resized: ${width}x${height}`);
+    win.webContents.send("window-resized", { width, height });
+  });
+  */
 }
 
 function startPython() {
@@ -127,6 +140,27 @@ app.whenReady().then(() => {
   ipcMain.handle('show-open-dialog', async (_e, options) => {
     const win = BrowserWindow.getFocusedWindow() ?? undefined;
     return dialog.showOpenDialog(win, options);
+  });
+
+  ipcMain.on("window-control", (event, action) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    if (!window) return;
+
+    switch (action) {
+      case "minimize":
+        window.minimize();
+        break;
+      case "maximize":
+        if (window.isMaximized()) {
+          window.unmaximize();
+        } else {
+          window.maximize();
+        }
+        break;
+      case "close":
+        window.close();
+        break;
+    }
   });
 
   //startPython();

@@ -35,7 +35,11 @@ const sendFilePathToServer = async (filePath: string) => {
 };
 
 const GalaxyOnChat: React.FC = () => {
-    const [paths, setPaths] = useState<string[]>([]);
+  const [paths, setPaths] = useState<string[]>([]);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [inputText, setInputText] = useState('');
+  const [chatList, setChatList] = useState<Array<{ question: string; answer: string }>>([]);
+  const [loading, setLoading] = useState(false);
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault(); // 필수: drop 허용
@@ -43,70 +47,66 @@ const GalaxyOnChat: React.FC = () => {
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-
     const files = Array.from(e.dataTransfer.files) as ElectronFile[];
-    //const filePaths = files.map(f => f.path ?? f.name); // 브라우저에선 path가 없지만 Electron에선 있음
-    console.log('files:', files);
     const filePaths = files.map(f => f.name);
-    console.log('filePaths:', filePaths);
-    //alert(`파일 드롭됨: ${filePaths.join(', ')}`);
     const _paths = files.map(f => window.electronAPI.getPathForFile(f));
-    console.log('_paths:', _paths);
     sendFilePathToServer(_paths[0]);
-    //alert(`파일 드롭됨: ${_paths.join(', ')}`);
     setPaths(_paths);
     setFileName(files[0].name);
   }, []);
 
-  const [fileName, setFileName] = useState<string | null>(null);
+  // Main chat handler function
+  const handleSendChat = async () => {
+    if (!inputText.trim()) return;
+    setLoading(true);
+    // Add question to chat list
+    setChatList(prev => [...prev, { question: inputText, answer: '' }]);
+    // Fetch answer from API
+    try {
+      const response = await fetch('http://localhost:8000/chat-msg/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: inputText })
+      });
+      const answerRes = await response.json();
+      // You may want to fetch the answer from another endpoint, adjust as needed
+      const answerText = answerRes?.status || '응답을 가져올 수 없습니다.';
+      setChatList(prev => {
+        const updated = [...prev];
+        //alert(answerText);
+        updated[updated.length - 1].answer = answerText + " (from Service1)";
+        return updated;
+      });
+    } catch (err) {
+      setChatList(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1].answer = 'API 요청 실패';
+        return updated;
+      });
+    }
+    setInputText('');
+    setLoading(false);
+  };
+
 
   const handleOpenFile = async () => {
-    /*
-    if (ipcRenderer) {
-      const result = await ipcRenderer.invoke('show-open-dialog', {
-        properties: ['openFile']
-      });
-      if (result && result.filePaths && result.filePaths.length > 0) {
-        setFilePath(result.filePaths[0]);
-      }
-    } else {
-      alert('File dialog is only available in Electron.');
-    }
-    */
-
-
-    // 타입 선언이 있다면 window.electronAPI 사용 가능
     const res = await window.electronAPI.openFileDialog({
-      properties: ['openFile'],                // 필요 시 ['openDirectory', 'multiSelections']
+      properties: ['openFile'],
       filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg'] }],
     });
     if (!res.canceled && res.filePaths?.length) {
-      // 사용자가 파일을 선택한 경우
-      console.log('선택된 파일:', res.filePaths[0]);
-      /*
-      // Call REST API to set RAG_PATH. PUT request to /set-rag-path/
-      await fetch('http://localhost:8000/set-rag-path/', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ rag_path: res.filePaths[0] }),
-      });
-      // Get RAG_PATH to confirm
-      const response = await fetch('http://localhost:8000/get-rag-path/');
-      const data = await response.json();
-      console.log('Current RAG_PATH:', data.RAG_PATH);
-      alert(`RAG_PATH set to: ${data.RAG_PATH}`);
-      */
       sendFilePathToServer(res.filePaths[0]);
-
       const _fileName = res.filePaths[0].split('\\').pop().split('/').pop();
-      //setFilePath(res.filePaths[0]);
       setFileName(_fileName || null);
-    } else {
-      // 사용자가 취소한 경우
     }
   };
+
+  /*
+  const handleClick = (action: string) => {
+    alert("Button clicked!");
+    window.electronAPI?.windowControl(action);
+  }
+  */
 
   return (
     <div className="bg-[#f7f4f2] relative size-full" data-name="service_1" data-node-id="1:355">
@@ -190,13 +190,7 @@ const GalaxyOnChat: React.FC = () => {
                   <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[14px] text-black text-nowrap" data-node-id="1:376">
                     <p className="leading-[normal] whitespace-pre">
                     {
-                      fileName && ( <div>
-                          {
-                            // 파일명만 표시 (in windows or unix)
-                            fileName
-                          }
-                      </div>
-                      )
+                      fileName && ( <div>{fileName}</div> )
                     }
                     </p>
                   </div>
@@ -242,15 +236,53 @@ const GalaxyOnChat: React.FC = () => {
           <p className="mb-0">안녕하세요, JD님.</p>
           <p className="">어떤 내용이 궁금하신가요?</p>
         </div>
+        {/* 채팅 내용 예시 및 채팅 리스트 */}
+        {chatList.map((chat, idx) => (
+          <React.Fragment key={idx}>
+            {/* 채팅 내용 예시 */}
+            <div className="content-stretch flex gap-4 items-start justify-start w-full left-[340px] top-[250px]">
+              {/* Icon for question */}
+              <div className="bg-[position:50%_50%,_0%_0%] bg-size-[cover,auto] bg-white overflow-clip relative rounded-[16px] shrink-0 size-8" style={{ backgroundImage: `url('${imgFrame1000014255}')` }} />
+              {/* Question text */}
+              <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[16px] text-black w-[616px]">
+                <p className="leading-[22px]">{chat.question}</p>
+              </div>
+            </div>
+
+            {/* Input area for answer */}
+            <div className="bg-white box-border content-stretch flex flex-col gap-4 items-start justify-start overflow-clip px-4 py-6 rounded-[24px] w-full" >
+              <div className="content-stretch flex gap-4 items-start justify-start relative shrink-0 w-full">
+                {/* Icon for answer */}
+                <div className="relative shrink-0 size-8" style={{ marginRight: 8 }}>
+                  <img alt="" className="block max-w-none size-full" src={imgPrimeUpload} />
+                </div>
+                {/* Answer text */}
+                <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black">
+                  <p className="mb-0">{chat.answer || (loading && idx === chatList.length - 1 ? '답변을 불러오는 중...' : '')}</p>
+                </div>
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
       </div>
       <div className="absolute bg-white content-stretch flex items-center justify-start left-[876px] top-2" data-node-id="1:394">
-        <div className="h-8 relative shrink-0 w-[46px]" data-name="Title Bar / Parts / Title Bar Caption Control Button" data-node-id="1:395">
+        {/* Title bar control buttons */}
+        <div className="h-8 relative shrink-0 w-[46px]" data-name="Title Bar / Parts / Title Bar Caption Control Button" data-node-id="1:395"
+          style={{ cursor: 'pointer' }}
+          onClick={() => window.electronAPI?.windowControl('minimize')}
+        >
           <img alt="" className="block max-w-none size-full" src={imgTitleBarPartsTitleBarCaptionControlButton} />
         </div>
-        <div className="h-8 relative shrink-0 w-[46px]" data-name="Title Bar / Parts / Title Bar Caption Control Button" data-node-id="1:398">
+        <div className="h-8 relative shrink-0 w-[46px]" data-name="Title Bar / Parts / Title Bar Caption Control Button" data-node-id="1:398"
+          style={{ cursor: 'pointer' }}
+          onClick={() => window.electronAPI?.windowControl('maximize')}
+        >
           <img alt="" className="block max-w-none size-full" src={imgTitleBarPartsTitleBarCaptionControlButton1} />
         </div>
-        <div className="h-8 relative shrink-0 w-[46px]" data-name="Title Bar / Parts / Title Bar Caption Control Button" data-node-id="1:401">
+        <div className="h-8 relative shrink-0 w-[46px]" data-name="Title Bar / Parts / Title Bar Caption Control Button" data-node-id="1:401"
+          style={{ cursor: 'pointer' }}
+          onClick={() => window.electronAPI?.windowControl('close')}
+        >
           <img alt="" className="block max-w-none size-full" src={imgTitleBarPartsTitleBarCaptionControlButton2} />
         </div>
       </div>
@@ -258,9 +290,7 @@ const GalaxyOnChat: React.FC = () => {
         // 하단 고정 안내 문구
       }
       <div className="absolute bottom-5 content-stretch flex flex-col gap-2 items-center justify-start left-[340px] w-[664px]" data-node-id="1:404">
-        {
-          // Input area
-        }
+        {/* Input area */}
         <div className="bg-white box-border content-stretch flex items-center justify-between overflow-clip px-5 py-2 relative rounded-[9999px] shrink-0 w-full" data-node-id="1:405">
           {/* Icon for question */}
           <div className="relative shrink-0 size-8" data-name="prime:upload" data-node-id="1:406">
@@ -268,17 +298,31 @@ const GalaxyOnChat: React.FC = () => {
           </div>
           {/* Input text */}
           <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black" data-node-id="1:410">
-            <input className="w-full outline-none" placeholder="무엇이든 물어보세요..." />
+            <input
+              className="w-full outline-none"
+              placeholder="무엇이든 물어보세요..."
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && inputText.trim().length > 0 && !loading) {
+                  handleSendChat();
+                }
+              }}
+            />
           </div>
           {/* Send button */}
-          <div className="relative shrink-0 size-6" data-name="mynaui:send" data-node-id="1:411">
+          <div
+            className="relative shrink-0 size-6" data-name="mynaui:send" data-node-id="1:411"
+            style={{ cursor: inputText.trim().length > 0 && !loading ? 'pointer' : 'not-allowed' }}
+            onClick={() => {
+              if (inputText.trim().length > 0 && !loading) handleSendChat();
+            }}
+          >
             <img alt="" className="block max-w-none size-full" src={imgMynauiSend} />
           </div>
           <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_4px_0px_inset_rgba(0,0,0,0.2)]" />
         </div>
-        {
-          // 안내 문구
-        }
+        {/* 안내 문구 */}
         <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[#858585] text-[10px] text-center text-nowrap tracking-[-0.4px]" data-node-id="1:413">
           <p className="leading-[normal] whitespace-pre">{`Galaxy on Chat은 실수 할 수 있습니다. 중요 정보는 원문 문서를 재확인 해주세요. `}</p>
         </div>
@@ -286,41 +330,6 @@ const GalaxyOnChat: React.FC = () => {
       {
         // 채팅 내용 예시
       }
-      <div className="absolute content-stretch flex gap-4 items-start justify-start left-[340px] top-[250px]" data-node-id="1:414">
-        {/* Icon for question */}
-        <div className="bg-[position:50%_50%,_0%_0%] bg-size-[cover,auto] bg-white overflow-clip relative rounded-[16px] shrink-0 size-8" data-node-id="1:415" style={{ backgroundImage: `url('${imgFrame1000014255}')` }}>
-          <div className="absolute left-[5px] size-[22px] top-[5px]" data-name="fluent:person-16-filled" data-node-id="1:416" />
-        </div>
-        {/* Question text */}
-        <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[16px] text-black w-[616px]" data-node-id="1:417">
-          <p className="leading-[22px]">이번 상반기에 제안된 무기체계들은 현재의 위협 환경과 미래 전장 양상에 얼마나 효과적으로 대응 할 수 있는지 기대치를 알려줘</p>
-        </div>
-      </div>
-      {/* Input area */}
-      <div className="absolute bg-white box-border content-stretch flex flex-col gap-4 items-start justify-start left-[340px] overflow-clip px-4 py-6 rounded-[24px] top-[314px] w-[664px]" data-node-id="1:418">
-        <div className="content-stretch flex gap-4 items-start justify-start relative shrink-0 w-[632px]" data-node-id="1:419">
-          {/* Icon for answer */}
-          <div className="relative shrink-0 size-8" data-name="prime:upload" data-node-id="1:420">
-            <img alt="" className="block max-w-none size-full" src={imgPrimeUpload} />
-          </div>
-          {/* Answer text */}
-          <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black" data-node-id="1:425">
-            <p className="mb-0">
-              현재 제시된 상반기 무기체계들은 급변하는 미래 전장 양상에 대한 우리 군의 전략적 대응 의지를 명확히 보여주고 있습니다. 특히, 다음과 같은 핵심 변화에 효과적으로 대응할 것으로 기대됩니다.
-              <br aria-hidden="true" className="" />
-              <br aria-hidden="true" className="" />
-            </p>
-            <p className="mb-0">
-              1. 초연결 네트워크 중심전(NCW) 환경 구축 가속화: 이번 무기체계들은 단순한 단일 무기 플랫폼을 넘어, 정보 공유 및 통합 능력을 극대화하는 방향으로 설계되었습니다. 이는 각 전력체계가 유기적으로 연동되어 실시간으로 전장 정보를 공유하고, 지휘통제체계와 연동되어 신속하고 정확한 의사결정을 지원함으로써 미래 네트워크 중심전 환경에서의 결정적 우위 확보에 크게 기여할 것입니다.
-              <br aria-hidden="true" className="" />
-              <br aria-hidden="true" className="" />
-            </p>
-            {
-            //<p className="">2. 유·무인 복합체계(MUM-T) 전투 역량 강화: 특히 주목할 점은 유인-무인 복합체계 운용을 위한 기반 마련입니다. 정찰, 감시, 타격 등 다양한 임무에 투입될 무인 체계의 도입 및 기존 유인 전력과의 연동성 강화는 인명 피해를 최소화하면서도 작전 효율성을 극대화할 수 있는 미래 전장의 핵심 역량입니다. 이번 무기체계들은 이러한 유·무인 복합작전 수행 능력을 한 단계 끌어올릴 것으로 기대됩니다.</p>-->
-            }
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

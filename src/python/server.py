@@ -52,6 +52,10 @@ async def shutdown_event():
 class RagPathIn(BaseModel):
     rag_path: str
 
+class ChatMessage(BaseModel):
+    question: str
+    answer: str = None
+
 @app.put("/set-rag-path/")
 async def set_rag_path(payload: RagPathIn):
     global RAG_PATH
@@ -74,9 +78,10 @@ async def long_job(name: str):
     return {"status": "Job started"}
 
 @app.post("/chat-msg/")
-async def chat_msg(message: str):
-    print(f"Received chat message: {message}")
-    return {"status": f"Message received: [{message}]"}
+async def chat_msg(message: ChatMessage):
+    print(f"Received chat message: {message.question}")
+    message.answer = f"Message received: [{message.question}]"
+    return {"status": f"Message received: [{message.question}]"}
 
 """
 class SimpleHandler(BaseHTTPRequestHandler):

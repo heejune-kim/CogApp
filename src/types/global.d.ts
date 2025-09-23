@@ -20,6 +20,7 @@ declare global {
       removeAll: (channel: string) => void;
       openFileDialog: (options: Electron.OpenDialogOptions) => Promise<any>;
       getPathForFile: (file: File) => string;
+      windowControl: (action: 'minimize' | 'maximize' | 'close') => void;
     };
   }
   interface File {

@@ -31,4 +31,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openFileDialog: (options: Electron.OpenDialogOptions) =>
     ipcRenderer.invoke('show-open-dialog', options),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
+
+  windowControl: (action: string) => ipcRenderer.send("window-control", action),
 });
