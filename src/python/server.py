@@ -81,6 +81,8 @@ async def long_job(name: str):
 async def chat_msg(message: ChatMessage):
     print(f"Received chat message: {message.question}")
     message.answer = f"Message received: [{message.question}]"
+    # Sleep to simulate processing
+    await asyncio.sleep(5)
     return {"status": f"Message received: [{message.question}]"}
 
 """

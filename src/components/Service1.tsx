@@ -221,7 +221,7 @@ const GalaxyOnChat: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="absolute bg-white h-12 left-0 overflow-clip top-0 w-[1024px]" data-node-id="1:384">
+      <div className="absolute bg-white h-12 left-0 overflow-clip top-0 w-[1024px] drag-region" data-node-id="1:384">
         <div className="absolute content-stretch flex gap-[5px] items-center justify-start left-5 top-3.5" data-node-id="1:385">
           <div className="relative shrink-0 size-6" data-name="line" data-node-id="1:386">
             <img alt="" className="block max-w-none size-full" src={imgLine} />
@@ -265,7 +265,7 @@ const GalaxyOnChat: React.FC = () => {
           </React.Fragment>
         ))}
       </div>
-      <div className="absolute bg-white content-stretch flex items-center justify-start left-[876px] top-2" data-node-id="1:394">
+  <div className="absolute bg-white content-stretch flex items-center justify-start left-[876px] top-2 no-drag-region" data-node-id="1:394">
         {/* Title bar control buttons */}
         <div className="h-8 relative shrink-0 w-[46px]" data-name="Title Bar / Parts / Title Bar Caption Control Button" data-node-id="1:395"
           style={{ cursor: 'pointer' }}
