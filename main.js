@@ -163,6 +163,14 @@ app.whenReady().then(() => {
     }
   });
 
+  // ✅ 창 드래그 핸들러 추가
+  ipcMain.on("start-window-drag", (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    if (window) {
+      window.setBounds({ ...window.getBounds() }); // 창 이동 활성화
+    }
+  });
+
   //startPython();
   createWindow();
 });

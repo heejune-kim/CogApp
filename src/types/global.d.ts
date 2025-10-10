@@ -21,6 +21,7 @@ declare global {
       openFileDialog: (options: Electron.OpenDialogOptions) => Promise<any>;
       getPathForFile: (file: File) => string;
       windowControl: (action: 'minimize' | 'maximize' | 'close') => void;
+      startWindowDrag: () => void;
     };
   }
   interface File {

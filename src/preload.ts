@@ -33,4 +33,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
 
   windowControl: (action: string) => ipcRenderer.send("window-control", action),
+  startWindowDrag: () => ipcRenderer.send('start-window-drag'),
 });

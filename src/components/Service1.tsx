@@ -35,7 +35,7 @@ const sendFilePathToServer = async (filePath: string) => {
 };
 
 const GalaxyOnChat: React.FC = () => {
-  const [paths, setPaths] = useState<string[]>([]);
+  //const [paths, setPaths] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [chatList, setChatList] = useState<Array<{ question: string; answer: string }>>([]);
@@ -51,7 +51,7 @@ const GalaxyOnChat: React.FC = () => {
     const filePaths = files.map(f => f.name);
     const _paths = files.map(f => window.electronAPI.getPathForFile(f));
     sendFilePathToServer(_paths[0]);
-    setPaths(_paths);
+    //setPaths(_paths);
     setFileName(files[0].name);
   }, []);
 
@@ -61,6 +61,7 @@ const GalaxyOnChat: React.FC = () => {
     setLoading(true);
     // Add question to chat list
     setChatList(prev => [...prev, { question: inputText, answer: '' }]);
+    setInputText('');
     // Fetch answer from API
     try {
       const response = await fetch('http://localhost:8000/chat-msg/', {
@@ -74,7 +75,8 @@ const GalaxyOnChat: React.FC = () => {
       setChatList(prev => {
         const updated = [...prev];
         //alert(answerText);
-        updated[updated.length - 1].answer = answerText + " (from Service1)";
+        //updated[updated.length - 1].answer = answerText + " (from Service1)";
+        updated[updated.length - 1].answer = answerText;
         return updated;
       });
     } catch (err) {
@@ -84,7 +86,6 @@ const GalaxyOnChat: React.FC = () => {
         return updated;
       });
     }
-    setInputText('');
     setLoading(false);
   };
 
@@ -231,39 +232,42 @@ const GalaxyOnChat: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="absolute content-stretch flex flex-col gap-[42px] items-start justify-start left-[340px] top-[132px] w-[640px]" data-node-id="1:392">
-        <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[32px] text-black text-nowrap whitespace-pre" data-node-id="1:393">
+
+      <div className="absolute left-[340px] top-[132px] w-[640px] h-[calc(100vh-250px)] flex flex-col" data-node-id="1:392">
+        <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[normal] not-italic shrink-0 text-[32px] text-black text-nowrap whitespace-pre mb-[42px]" data-node-id="1:393">
           <p className="mb-0">안녕하세요, JD님.</p>
           <p className="">어떤 내용이 궁금하신가요?</p>
         </div>
-        {/* 채팅 내용 예시 및 채팅 리스트 */}
-        {chatList.map((chat, idx) => (
-          <React.Fragment key={idx}>
-            {/* 채팅 내용 예시 */}
-            <div className="content-stretch flex gap-4 items-start justify-start w-full left-[340px] top-[250px]">
-              {/* Icon for question */}
-              <div className="bg-[position:50%_50%,_0%_0%] bg-size-[cover,auto] bg-white overflow-clip relative rounded-[16px] shrink-0 size-8" style={{ backgroundImage: `url('${imgFrame1000014255}')` }} />
-              {/* Question text */}
-              <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[16px] text-black w-[616px]">
-                <p className="leading-[22px]">{chat.question}</p>
+        {/* 스크롤 가능한 채팅 리스트 영역 */}
+        <div className="flex-1 overflow-y-auto flex flex-col gap-[42px] pb-4">
+          {chatList.map((chat, idx) => (
+            <React.Fragment key={idx}>
+              {/* 채팅 내용 예시 */}
+              <div className="content-stretch flex gap-4 items-start justify-start w-full">
+                {/* Icon for question */}
+                <div className="bg-[position:50%_50%,_0%_0%] bg-size-[cover,auto] bg-white overflow-clip relative rounded-[16px] shrink-0 size-8" style={{ backgroundImage: `url('${imgFrame1000014255}')` }} />
+                {/* Question text */}
+                <div className="font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal leading-[0] not-italic relative shrink-0 text-[16px] text-black w-[616px]">
+                  <p className="leading-[22px]">{chat.question}</p>
+                </div>
               </div>
-            </div>
 
-            {/* Input area for answer */}
-            <div className="bg-white box-border content-stretch flex flex-col gap-4 items-start justify-start overflow-clip px-4 py-6 rounded-[24px] w-full" >
-              <div className="content-stretch flex gap-4 items-start justify-start relative shrink-0 w-full">
-                {/* Icon for answer */}
-                <div className="relative shrink-0 size-8" style={{ marginRight: 8 }}>
-                  <img alt="" className="block max-w-none size-full" src={imgPrimeUpload} />
-                </div>
-                {/* Answer text */}
-                <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black">
-                  <p className="mb-0">{chat.answer || (loading && idx === chatList.length - 1 ? '답변을 불러오는 중...' : '')}</p>
+              {/* Input area for answer */}
+              <div className="bg-white box-border content-stretch flex flex-col gap-4 items-start justify-start overflow-clip px-4 py-6 rounded-[24px] w-full" >
+                <div className="content-stretch flex gap-4 items-start justify-start relative shrink-0 w-full">
+                  {/* Icon for answer */}
+                  <div className="relative shrink-0 size-8" style={{ marginRight: 8 }}>
+                    <img alt="" className="block max-w-none size-full" src={imgPrimeUpload} />
+                  </div>
+                  {/* Answer text */}
+                  <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black">
+                    <p className="mb-0">{chat.answer || (loading && idx === chatList.length - 1 ? '답변을 불러오는 중...' : '')}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </React.Fragment>
-        ))}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
   <div className="absolute bg-white content-stretch flex items-center justify-start left-[876px] top-2 no-drag-region" data-node-id="1:394">
         {/* Title bar control buttons */}
