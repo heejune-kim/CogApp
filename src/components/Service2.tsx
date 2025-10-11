@@ -60,7 +60,7 @@ export default function Service2() {
   return (
     <div className="min-h-screen bg-white overflow-hidden">
       <div className="mx-auto w-[1024px]">
-        <div className="service-2 bg-[#f7f4f2] relative h-screen">
+        <div className="service-2 bg-[#f7f4f2] h-screen flex flex-col">
           {/* Title Bar */}
           <div className="absolute bg-white h-[48px] left-0 top-0 w-full overflow-hidden drag-region"
             onMouseDown={handleTitleBarDrag}
@@ -130,38 +130,33 @@ export default function Service2() {
             </div>
           </div>
 
-          <div
-            ref={chatContainerRef}
-            className="absolute chat-container overflow-y-auto flex-1 flex-col-reverse gap-[16px] items-start left-[20px] top-[132px] w-[982px]"
-          >
-            {/* Main Content */}
-            <div className="flex flex-col gap-[42px] items-start left-[20px] top-[132px] w-[982px]">
-              <div className="font-normal text-[32px] text-black whitespace-pre-line">
-                <p className="mb-0">안녕하세요, JD님.</p>
-                <p>번역할 내용을 입력해주세요.</p>
+          {/* === 상단 인사(고정) + 대화영역(스크롤) === */}
+          <div className="absolute left-[20px] right-[20px] top-[132px] bottom-[120px]">
+            <div className="flex flex-col h-full min-h-0">
+              {/* 인사 문구: 스크롤 안 함 */}
+              <div className="shrink-0 mb-[16px]">
+                <p className="font-normal text-[32px] leading-[40px] text-black">안녕하세요, JD님.</p>
+                <p className="font-normal text-[32px] leading-[40px] text-black">번역할 내용을 입력해주세요.</p>
               </div>
-            </div>
 
-            {/* Chat Container */}
-            <div className="flex flex-col gap-[16px]">
-
-              {/* Chat Messages */}
-              {
-                chatList.map((chat, index) => (
+              {/* 대화 영역: 여기만 세로 스크롤 */}
+              <div
+                ref={chatContainerRef}
+                className="grow overflow-y-auto overflow-x-hidden pr-[2px] pb-[8px]"
+              >
+                {chatList.map((chat, index) => (
                   <React.Fragment key={index}>
+                    {/* 사용자 메시지 */}
                     <div className="flex gap-[16px] items-start w-full">
                       <div className="overflow-hidden relative rounded-[16px] shrink-0 w-[32px] h-[32px]">
-                        <div className="absolute inset-0 pointer-events-none rounded-[16px]">
-                          <div className="absolute bg-white inset-0 rounded-[16px]" />
-                          <img alt="User Avatar" className="absolute max-w-none object-cover rounded-[16px] w-full h-full" src={frameAvatar} />
-                        </div>
+                        <img alt="User Avatar" className="absolute max-w-none object-cover rounded-[16px] w-full h-full" src={frameAvatar} />
                       </div>
                       <p className="flex-1 font-normal leading-[24px] text-[16px] text-black">
                         {chat.question}
                       </p>
                     </div>
 
-                    {/* AI Response */}
+                    {/* AI 응답 */}
                     <div className="bg-white flex flex-col gap-[16px] items-start w-full overflow-hidden px-[16px] py-[24px] rounded-[24px]">
                       <div className="flex gap-[16px] items-start w-full">
                         <div className="relative shrink-0 w-[32px] h-[32px]">
@@ -173,8 +168,8 @@ export default function Service2() {
                       </div>
                     </div>
                   </React.Fragment>
-                ))
-              }
+                ))}
+              </div>
             </div>
           </div>
 

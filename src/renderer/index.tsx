@@ -1,9 +1,9 @@
 import './index.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-//import GalaxyOnChat from './galaxy';
+import GalaxyOnChat from './galaxy';
 //import GalaxyOnChat from '../components/MainScreen';
-import GalaxyOnChat from '../components/Service1';
+//import Service1 from '../components/Service1';
 import Service2 from '../components/Service2';
 //import { BrowserRouter as Router } from "react-router-dom";
 import { HashRouter as Router } from "react-router-dom";
@@ -14,7 +14,9 @@ function App() {
     <Router>
       {
         <GalaxyOnChat />
+        //<Service1 />
         //<Service2 />
+        //<Service3 />
       }
       </Router>
   );

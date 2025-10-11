@@ -116,22 +116,28 @@ async def long_job(name: str, request: Request):
     asyncio.create_task(_long_job(name))
     return {"status": "Job started"}
 
+ttt= """
+Ways to find local events
+Check local government websites: Municipal and provincial government websites for Gyeonggi-do and Seongnam-si often post a calendar of community and cultural events, many of which are free. The best source is likely the official Seongnam-si website.
+Search Facebook groups: Facebook groups for Korea and for specific cities often have posts about local events shared by residents. A search for "Korea events" yielded a public group where people post about upcoming events.
+Use local apps or websites: Apps like AllEvents and Meetup can be used to search for events by location. While they may not have information on every local community event, they can highlight activities posted by local groups, including free ones.
+Visit local community centers and parks: Many community centers and libraries offer free classes, workshops, or exhibitions. Local parks may also host free public events, especially in the fall.
+Look at university campuses: Universities in and around Seongnam often have free public events like lectures, concerts, or exhibitions, especially if they have an arts program.\n""" * 10
+
 @app.post("/chat-msg/")
 async def chat_msg(message: ChatMessage, request: Request):
     global CHUNKS, VECTORIZER, X, PIPE
     logger.debug(f"POST /chat-msg/ from {request.client.host} with question: {message.question}")
-    #message.answer = f"Message received: [{message.question}]"
     message.answer = one_time_rag(input_str=message.question, vectorizer=VECTORIZER, X=X, chunks=CHUNKS, pipe=PIPE)
-    #return {"status": f"Message received: [{message.question}]"}
+    #message.answer = ttt
     return {"status": f"{message.answer}"}
 
 @app.post("/chat-msg-manual/")
 async def chat_msg_manual(message: ChatMessage, request: Request):
     global CHUNKS_MANUAL, VECTORIZER_MANUAL, X_MANUAL, PIPE
     logger.debug(f"POST /chat-msg-manual/ from {request.client.host} with question: {message.question}")
-    #message.answer = f"Message received: [{message.question}]"
-    message.answer = one_time_rag(input_str=message.question, vectorizer=VECTORIZER_MANUAL, X=X_MANUAL, chunks=CHUNKS_MANUAL, pipe=PIPE)
-    #return {"status": f"Message received: [{message.question}]"}
+    #message.answer = one_time_rag(input_str=message.question, vectorizer=VECTORIZER_MANUAL, X=X_MANUAL, chunks=CHUNKS_MANUAL, pipe=PIPE)
+    message.answer = ttt
     return {"status": f"{message.answer}"}
 
 """

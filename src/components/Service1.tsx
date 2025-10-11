@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import './Service1.css';
 
 import imgImage8 from '../assets/image-8.png';
@@ -31,15 +31,17 @@ const sendFilePathToServer = async (filePath: string) => {
   const response = await fetch('http://localhost:8000/get-rag-path/');
   const data = await response.json();
   console.log('Current RAG_PATH:', data.RAG_PATH);
-  alert(`RAG_PATH set to: ${data.RAG_PATH}`);
+  //alert(`RAG_PATH set to: ${data.RAG_PATH}`);
 };
 
-const GalaxyOnChat: React.FC = () => {
+const Service1: React.FC = () => {
   //const [paths, setPaths] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [chatList, setChatList] = useState<Array<{ question: string; answer: string }>>([]);
   const [loading, setLoading] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault(); // 필수: drop 허용
@@ -51,8 +53,10 @@ const GalaxyOnChat: React.FC = () => {
     const filePaths = files.map(f => f.name);
     const _paths = files.map(f => window.electronAPI.getPathForFile(f));
     sendFilePathToServer(_paths[0]);
-    //setPaths(_paths);
     setFileName(files[0].name);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   }, []);
 
   // Main chat handler function
@@ -99,8 +103,17 @@ const GalaxyOnChat: React.FC = () => {
       sendFilePathToServer(res.filePaths[0]);
       const _fileName = res.filePaths[0].split('\\').pop().split('/').pop();
       setFileName(_fileName || null);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     }
   };
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatList]);
 
   /*
   const handleClick = (action: string) => {
@@ -239,7 +252,10 @@ const GalaxyOnChat: React.FC = () => {
           <p className="">어떤 내용이 궁금하신가요?</p>
         </div>
         {/* 스크롤 가능한 채팅 리스트 영역 */}
-        <div className="flex-1 overflow-y-auto flex flex-col gap-[42px] pb-4">
+        <div
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto flex flex-col gap-[42px] pb-4"
+        >
           {chatList.map((chat, idx) => (
             <React.Fragment key={idx}>
               {/* 채팅 내용 예시 */}
@@ -303,8 +319,9 @@ const GalaxyOnChat: React.FC = () => {
           {/* Input text */}
           <div className="basis-0 font-['Inter:Regular',_'Noto_Sans_KR:Regular',_sans-serif] font-normal grow leading-[24px] min-h-px min-w-px not-italic relative shrink-0 text-[14px] text-black" data-node-id="1:410">
             <input
+              ref={inputRef}
               className="w-full outline-none"
-              placeholder="무엇이든 물어보세요..."
+              placeholder={fileName ? "무엇이든 물어보세요" : "검색할 파일을 선택해 주세요"}
               value={inputText}
               onChange={e => setInputText(e.target.value)}
               onKeyDown={e => {
@@ -312,6 +329,7 @@ const GalaxyOnChat: React.FC = () => {
                   handleSendChat();
                 }
               }}
+              disabled={!fileName}
             />
           </div>
           {/* Send button */}
@@ -338,4 +356,4 @@ const GalaxyOnChat: React.FC = () => {
   );
 };
 
-export default GalaxyOnChat;
+export default Service1;
