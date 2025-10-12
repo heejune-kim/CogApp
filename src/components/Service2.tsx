@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Service2.css';
 import logoLine from '../assets/figma/new-screen/logo-line.svg';
 import settingsGroup from '../assets/figma/new-screen/settings-group.svg';
@@ -10,6 +11,7 @@ export default function Service2() {
   const [chatList, setChatList] = useState<Array<{ question: string; answer: string }>>([]);
   const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const handleSendChat = async () => {
     if (!inputText.trim()) return;
@@ -110,7 +112,11 @@ export default function Service2() {
           <div className="absolute bg-white flex h-[44px] items-center justify-between left-0 px-[20px] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.1)] top-[48px] w-full">
             <div className="flex items-center justify-center shrink-0">
               <div className="rotate-180">
-                <div className="relative w-[24px] h-[24px]">
+                {/* Hamburger Icon */}
+                <div className="relative w-[24px] h-[24px] cursor-pointer"
+                  onClick={() => navigate('/')}
+                  data-name="quill:hamburger"
+                  data-node-id="1:378">
                   <svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style={{display: 'block'}} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3.75 6H20.25M3.75 12H20.25M3.75 18H20.25" stroke="#909090" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>

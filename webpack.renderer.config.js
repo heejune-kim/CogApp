@@ -44,6 +44,13 @@ module.exports = {
         type: "asset/resource",
         generator: { filename: "assets/[name][hash][ext]" },
       },
+
+      // ✅ 폰트 파일 (로컬)
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: "asset/resource",
+        generator: { filename: "fonts/[name][hash][ext]" },
+      },
     ],
   },
   plugins: [

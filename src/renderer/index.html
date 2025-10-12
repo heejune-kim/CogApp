@@ -1,19 +1,10 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
   <body>
-    <!--
-    <h1>Electron + Python</h1>
-    <button onclick="fetchMessage()">Python에게 요청</button>
-    <p id="result"></p>
-    -->
-
-    <script>
-      async function fetchMessage() {
-        const res = await fetch('http://localhost:5000');
-        const text = await res.text();
-        //document.getElementById('result').innerText = text;
-      }
-    </script>
-    <div id="root" />
+    <div id="root"></div>
   </body>
 </html>

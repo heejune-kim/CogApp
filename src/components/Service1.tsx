@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import './Service1.css';
 
+import { useNavigate } from 'react-router-dom';
 import imgImage8 from '../assets/image-8.png';
 import imgFrame1000014255 from '../assets/user-avatar.png';
 import imgGroup from '../assets/upload-icon.svg';
@@ -42,6 +43,7 @@ const Service1: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault(); // 필수: drop 허용
@@ -218,7 +220,10 @@ const Service1: React.FC = () => {
       <div className="absolute bg-white box-border content-stretch flex h-11 items-center justify-between left-0 px-5 py-0 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.1)] top-12 w-[1024px]" data-node-id="1:377">
         <div className="flex items-center justify-center relative shrink-0">
           <div className="flex-none rotate-[180deg]">
-            <div className="relative size-6" data-name="quill:hamburger" data-node-id="1:378">
+            <div className="relative size-6 cursor-pointer"
+              onClick={() => navigate('/')}
+              data-name="quill:hamburger"
+              data-node-id="1:378">
               <img alt="" className="block max-w-none size-full" src={imgQuillHamburger} />
             </div>
           </div>

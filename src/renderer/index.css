@@ -1,7 +1,7 @@
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "../assets/fonts/fonts.css";
+
+/* Tailwind base, components, and utilities should be included via the build process */
 
 /* (선택) reset 보강 */
 * { box-sizing: border-box; }
