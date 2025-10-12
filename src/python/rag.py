@@ -9,10 +9,9 @@ from rag_core import (
     prepare_knowledge,
     retrieve,
     build_prompt,
+    build_prompt_for_translation,
     generate_answer,
     TOP_K,
-    CHUNK_SIZE,
-    CHUNK_OVERLAP,
     MAX_LENGTH
 )
 from rag_utils import (
@@ -134,6 +133,14 @@ def one_time_rag(input_str, vectorizer, X, chunks, pipe, max_length=MAX_LENGTH, 
     logger.debug("🤖 AI 응답 생성 중...")
     outputs = generate_answer(pipe, prompt, max_length=max_length)
     return outputs
+
+def translate(input_str, pipe, max_length=MAX_LENGTH, top_k=TOP_K) -> str:
+    prompt = build_prompt_for_translation(input_str)
+    logger.debug(prompt)
+    logger.debug("🤖 AI 응답 생성 중...")
+    outputs = generate_answer(pipe, prompt, max_length=max_length)
+    return outputs
+
 
 def interactive_rag(
     data_path=DATA_PATH,

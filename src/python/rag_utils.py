@@ -7,6 +7,11 @@ import olefile
 import hwp5
 import PyPDF2
 
+# Extract text from pptx files using python-pptx
+from pptx import Presentation
+# Read HWPX file (XML-based Hangul document)
+import xml.etree.ElementTree as ET
+
 DEBUG_MODE = True
 BEGIN_TIME = time.time()
 
@@ -23,6 +28,86 @@ def print_elapsed_time_and_update(tag: str, begin_time: float = None):
     if DEBUG_MODE:
         print(f"Time for {tag}: {time.time() - BEGIN_TIME:.2f} seconds")
     BEGIN_TIME = time.time()
+
+
+def read_hwpx_file(file_path):
+    """
+    Extracts all text from a .hwpx file (HWPX XML format).
+    Args:
+        file_path (str): Path to the .hwpx file.
+    Returns:
+        str: Extracted text content.
+    Raises:
+        ValueError: If the file is not a .hwpx file.
+        Exception: For other errors during extraction.
+    """
+    if not file_path.lower().endswith('.hwpx'):
+        raise ValueError("Only .hwpx files are supported.")
+    try:
+        tree = ET.parse(file_path)
+        root = tree.getroot()
+        ns = {'h': 'http://www.hancom.co.kr/hwpml/2010/10/20'}
+        paragraphs = root.findall('.//h:p', ns)
+        text = []
+        for para in paragraphs:
+            runs = para.findall('.//h:t', ns)
+            for run in runs:
+                if run.text:
+                    text.append(run.text)
+        return '\n'.join(text)
+    except Exception as e:
+        raise Exception(f"Failed to extract text from hwpx: {e}")
+
+
+def extract_text_from_pptx(file_path):
+    """
+    Extracts all text from a .pptx file.
+    Args:
+        file_path (str): Path to the .pptx file.
+    Returns:
+        str: Extracted text content.
+    Raises:
+        ValueError: If the file is not a .pptx file.
+        Exception: For other errors during extraction.
+    """
+    if not file_path.lower().endswith('.pptx'):
+        raise ValueError("Only .pptx files are supported.")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+    try:
+        prs = Presentation(file_path)
+        text_runs = []
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    text_runs.append(shape.text)
+                elif hasattr(shape, "text_frame") and shape.text_frame is not None:
+                    text_runs.append(shape.text_frame.text)
+        return "\n".join([t for t in text_runs if t.strip()])
+    except Exception as e:
+        raise Exception(f"Failed to extract text from pptx: {e}")
+
+
+# Utility function to read plain text files
+def read_text_file(file_path, encoding="utf-8"):
+    """
+    Reads the content of a plain text file.
+    Args:
+        file_path (str): Path to the text file.
+        encoding (str): File encoding (default: utf-8).
+    Returns:
+        str: File content as a string.
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        Exception: For other errors during reading.
+    """
+    try:
+        with open(file_path, "r", encoding=encoding) as f:
+            return f.read()
+    except FileNotFoundError:
+        raise
+    except Exception as e:
+        raise Exception(f"Failed to read text file: {e}")
 
 
 def read_msword_file(file_path):
@@ -76,6 +161,10 @@ def read_file(file_path):
         return read_pdf_file(file_path)
     elif ext == '.hwp':
         return read_hwp_file(file_path)
+    elif ext == '.hwpx':
+        return read_hwpx_file(file_path)
+    elif ext == '.pptx':
+        return extract_text_from_pptx(file_path)
     else:
         raise ValueError(f"지원되지 않는 파일 형식입니다: {ext}")
 

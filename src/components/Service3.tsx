@@ -22,7 +22,7 @@ export default function Service3() {
     setInputText('');
     // Fetch answer from API
     try {
-      const response = await fetch('http://localhost:8000/chat-msg-translate/', {
+      const response = await fetch('http://localhost:8000/chat-msg-manual/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: currentQuestion })

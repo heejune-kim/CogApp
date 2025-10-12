@@ -178,10 +178,25 @@ def build_prompt(user_question, retrieved):
     )
     return user_prompt
 
+def build_prompt_for_translation(user_question):
+    user_prompt = (
+        f"다음 문장을 영어로 번역해 주세요:\n\"{user_question}\"\n\n"
+        "규칙:\n"
+        "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
+        "1) 정확하고 자연스럽게 번역할 것.\n"
+        "2) 문화적 맥락을 고려할 것.\n"
+        "3) 문법적으로 올바르게 작성할 것.\n"
+        "4) 대답에 한글은 절대로 들어가면 안됨.\n"
+#        "4) 너무 길지 않게 2문장 이내로 간결히.\n"
+    )
+    return user_prompt
+
 # 답변 생성
 
 def generate_answer(pipe, prompt, max_length=200):
     answer = pipe.generate(prompt, max_length=max_length)
     if "<끝>" in answer:
         answer = answer.split("<끝>")[0].strip()
+    if "(끝)" in answer:
+        answer = answer.split("(끝)")[0].strip()
     return answer

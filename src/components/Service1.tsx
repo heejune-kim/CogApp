@@ -99,7 +99,7 @@ const Service1: React.FC = () => {
   const handleOpenFile = async () => {
     const res = await window.electronAPI.openFileDialog({
       properties: ['openFile'],
-      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg'] }],
+      filters: [{ name: 'Documents', extensions: ['pdf', 'docx', 'hwp', 'hwpx', 'pptx', 'txt'] }],
     });
     if (!res.canceled && res.filePaths?.length) {
       sendFilePathToServer(res.filePaths[0]);
