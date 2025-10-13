@@ -17,12 +17,12 @@ from rag_core import (
 from rag_utils import (
     print_elapsed_time_and_update,
     read_file,
-    write_text_to_file
+    write_text_to_file,
+    get_logger,
 )
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = get_logger()
 
 DATA_PATH = "data.txt"
 

@@ -2,7 +2,25 @@
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(pyinstaller:*)",
+      "Bash(.distserver.exe)",
+      "Bash(distserver.exe)",
+      "Bash(./server.exe)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(tasklist)",
+      "Bash(tee:*)",
+      "Bash(while [ ! -f \"build2.log\" ])",
+      "Bash(! grep -q \"Build complete\" build2.log)",
+      "Bash(do sleep:*)",
+      "Bash(done)",
+      "Bash(taskkill:*)",
+      "Bash(npm run python:build:*)",
+      "Bash(while [ ! -f \"dist/server.exe\" ])",
+      "Bash(../python.exe server.py)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

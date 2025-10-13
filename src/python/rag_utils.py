@@ -4,8 +4,9 @@ import os
 import time
 import docx
 import olefile
-import hwp5
+#import hwp5
 import PyPDF2
+import logging
 
 # Extract text from pptx files using python-pptx
 from pptx import Presentation
@@ -14,6 +15,27 @@ import xml.etree.ElementTree as ET
 
 DEBUG_MODE = True
 BEGIN_TIME = time.time()
+
+_logger = None
+
+def get_logger():
+    global _logger
+    if _logger is not None:
+        return _logger
+
+    # Logger setup
+    logger = logging.getLogger("CogApp")
+    logger.setLevel(logging.DEBUG)
+
+    # make logger to save file
+    handler = logging.FileHandler("app.log")
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    _logger = logger
+    return logger
 
 def print_elapsed_time_and_update(tag: str, begin_time: float = None):
     global BEGIN_TIME
@@ -135,6 +157,7 @@ def read_pdf_file(file_path):
     return '\n'.join(full_text)
 
 
+"""
 def read_hwp_file(file_path):
 
     if not os.path.exists(file_path):
@@ -149,6 +172,7 @@ def read_hwp_file(file_path):
         for para in hwp.bodytext:
             text.append(para.text)
     return '\n'.join(text)
+"""
 
 
 def read_file(file_path):
@@ -159,8 +183,8 @@ def read_file(file_path):
         return read_msword_file(file_path)
     elif ext == '.pdf':
         return read_pdf_file(file_path)
-    elif ext == '.hwp':
-        return read_hwp_file(file_path)
+    #elif ext == '.hwp':
+    #    return read_hwp_file(file_path)
     elif ext == '.hwpx':
         return read_hwpx_file(file_path)
     elif ext == '.pptx':

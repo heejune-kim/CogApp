@@ -118,6 +118,70 @@ function startPython() {
   });
 }
 
+/**
+ * Python 인터프리터를 사용하여 server.py를 실행하는 함수
+ * assets/py311/python.exe를 사용하여 assets/py311/server/server.py를 실행
+ */
+function launchPython() {
+  const isDev = !app.isPackaged;
+
+  // 경로 설정
+  const basePath = isDev
+    ? path.join(__dirname, 'assets')
+    : path.join(process.resourcesPath, 'assets');
+
+  const pythonExe = path.join(basePath, 'py311', 'python.exe');
+  const serverScript = path.join(basePath, 'py311', 'server', 'server.py');
+  const serverDir = path.join(basePath, 'py311', 'server');
+
+  console.log('=== Python Launch Info ===');
+  console.log('Base Path:', basePath);
+  console.log('Python Exe:', pythonExe);
+  console.log('Server Script:', serverScript);
+  console.log('Server Dir:', serverDir);
+
+  // 파일 존재 확인
+  if (!fs.existsSync(pythonExe)) {
+    console.error(`❌ Python executable not found: ${pythonExe}`);
+    return;
+  }
+
+  if (!fs.existsSync(serverScript)) {
+    console.error(`❌ Server script not found: ${serverScript}`);
+    return;
+  }
+
+  // Python 프로세스 시작
+  // cwd를 server 디렉토리로 설정하여 상대 import가 제대로 작동하도록 함
+  pyProc = spawn(pythonExe, [serverScript], {
+    cwd: serverDir,  // 작업 디렉토리를 server 폴더로 설정
+    env: {
+      ...process.env,
+      PYTHONPATH: serverDir,  // Python 모듈 검색 경로에 server 디렉토리 추가
+      PYTHONIOENCODING: 'utf-8',  // 한글 출력 깨짐 방지
+    }
+  });
+
+  console.log('✅ Python process started with PID:', pyProc.pid);
+
+  pyProc.stdout.on('data', (data) => {
+    console.log(`[Python]: ${data.toString().trim()}`);
+  });
+
+  pyProc.stderr.on('data', (data) => {
+    console.error(`[Python ERROR]: ${data.toString().trim()}`);
+  });
+
+  pyProc.on('error', (err) => {
+    console.error('❌ Failed to start Python process:', err);
+  });
+
+  pyProc.on('exit', (code, signal) => {
+    console.log(`Python process exited with code ${code} and signal ${signal}`);
+    pyProc = null;
+  });
+}
+
 /*
 function createWindow() {
   const win = new BrowserWindow({
@@ -172,6 +236,7 @@ app.whenReady().then(() => {
   });
 
   //startPython();
+  launchPython();  // Python 인터프리터로 server.py 실행
   createWindow();
 });
 

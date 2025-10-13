@@ -4,13 +4,14 @@
   "description": "Cog App - AI-powered desktop application",
   "main": "main.js",
   "scripts": {
-    "python:build": "python -m pip install pyinstaller && pyinstaller --onefile --distpath ./dist ./src/python/server.py",
+    "__python:build": "python -m pip install pyinstaller && pyinstaller --distpath ./dist server.spec",
     "test": "echo \"Error: no test specified\" && exit 1",
     "_XXX_build:renderer_force": "taskkill /IM server.exe /F && webpack --config webpack.renderer.config.js",
     "build:main": "webpack --config webpack.main.config.js",
     "build:preload": "webpack --config webpack.preload.config.js",
     "build:renderer": "webpack --config webpack.renderer.config.js",
-    "build": "npm run python:build && npm run build:main && npm run build:preload && npm run build:renderer",
+    "__build": "npm run python:build && npm run build:main && npm run build:preload && npm run build:renderer",
+    "build": "npm run build:main && npm run build:preload && npm run build:renderer",
     "_XXX_build:preload": "tsc src/preload.ts --outDir dist --esModuleInterop --lib DOM,ESNext --module commonjs --target ES2020",
     "start:renderer": "webpack serve --config webpack.renderer.config.js --mode development",
     "start": "npm run build && electron ."
@@ -56,8 +57,8 @@
     ],
     "extraResources": [
       {
-        "from": "dist/server.exe",
-        "to": "server.exe",
+        "from": "assets/",
+        "to": "assets/",
         "filter": [
           "**/*"
         ]
