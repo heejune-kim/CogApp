@@ -8,6 +8,7 @@ import time
 import glob
 from rag_utils import (
     get_logger,
+    is_debug_mode,
 )
 
 CHUNK_SIZE = 900
@@ -17,11 +18,104 @@ MAX_LENGTH = 200
 
 # 모델 준비
 
+RAG_PROMPT = (
+    "지식 컨텍스트:\n[CONTEXT_BLOCK]\n\n"
+    "질문: [USER_QUESTION]\n\n"
+    "규칙:\n"
+    "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
+    "1) 컨텍스트에 있는 정보만 사용.\n"
+    "2) 없으면 '모르겠습니다.<끝>'라고 답변.\n"
+    "3) 3문장 이내로 간결히.\n"
+)
 
-logger = get_logger()
+TRANSLATION_PROMPT = (
+    "다음 문장을 영어로 번역해 주세요:\"[USER_QUESTION]\"\n\n"
+    "규칙:\n"
+    "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
+    "1) 정확하고 자연스럽게 번역할 것.\n"
+    "2) 문화적 맥락을 고려할 것.\n"
+    "3) 문법적으로 올바르게 작성할 것.\n"
+    "4) 대답에 한글은 절대로 들어가면 안됨.\n"
+)
 
 REQUIRED_PATTERNS = ["*.xml", "*.bin", "*.json", "tokenizer.*", "*.txt", "*.model", "*.vocab", "*.merges", "*.sentencepiece*"]
 
+RAG_PROMPT_PATH = None
+TRANSLATION_PROMPT_PATH = None
+
+
+def read_rag_prompt_from_file(prompt_path: str = None) -> str:
+    global RAG_PROMPT
+
+    logger = get_logger()
+    if prompt_path is None:
+        prompt_path = RAG_PROMPT_PATH
+    if prompt_path and os.path.isfile(prompt_path):
+        with open(prompt_path, "r", encoding="utf-8") as pf:
+            prompt = pf.read()
+
+            logger.debug(f"RAG prompt read from file: {prompt_path}")
+            logger.debug(f"RAG prompt content: {prompt[:100]}...")  # 처음 100자만 로그에 출력
+
+            RAG_PROMPT = prompt
+        return prompt
+    return None
+
+
+def read_translation_prompt_from_file(prompt_path: str = None) -> str:
+    global TRANSLATION_PROMPT
+
+    if prompt_path is None:
+        prompt_path = TRANSLATION_PROMPT_PATH
+
+    if prompt_path and os.path.isfile(prompt_path):
+        with open(prompt_path, "r", encoding="utf-8") as pf:
+            prompt = pf.read()
+
+            logger = get_logger()
+            logger.debug(f"Translation prompt read from file: {prompt_path}")
+            logger.debug(f"Translation prompt content: {prompt[:100]}...")  # 처음 100자만 로그에 출력
+
+            TRANSLATION_PROMPT = prompt
+        return prompt
+    return None
+
+
+def set_prompt_path(rag_prompt_path: str = None, translation_prompt_path: str = None):
+    global RAG_PROMPT_PATH, TRANSLATION_PROMPT_PATH
+    logger = get_logger()
+
+    if rag_prompt_path and os.path.isfile(rag_prompt_path):
+        RAG_PROMPT_PATH = rag_prompt_path
+        logger.debug(f"RAG prompt path set to: {RAG_PROMPT_PATH}")
+
+    if translation_prompt_path and os.path.isfile(translation_prompt_path):
+        TRANSLATION_PROMPT_PATH = translation_prompt_path
+        logger.debug(f"Translation prompt path set to: {TRANSLATION_PROMPT_PATH}")
+
+
+def set_prompts(rag_prompt: str = None, translation_prompt: str = None):
+    global RAG_PROMPT, TRANSLATION_PROMPT
+
+    if rag_prompt:
+        RAG_PROMPT = rag_prompt
+    if translation_prompt:
+        TRANSLATION_PROMPT = translation_prompt
+
+
+def set_rag_params(chunk_size: int, chunk_overlap: int, top_k: int, max_length: int):
+    global CHUNK_SIZE, CHUNK_OVERLAP, TOP_K, MAX_LENGTH
+
+    CHUNK_SIZE = chunk_size
+    CHUNK_OVERLAP = chunk_overlap
+    TOP_K = top_k
+    MAX_LENGTH = max_length
+
+
+CHUNK_SIZE = 900
+CHUNK_OVERLAP = 150
+TOP_K = 5
+MAX_LENGTH = 200
 def _has_openvino_snapshot(local_dir: str) -> bool:
     """IR(xml/bin)와 토크나이저 파일이 있는지 간단히 점검."""
     if not os.path.isdir(local_dir):
@@ -92,7 +186,7 @@ def prepare_model(
     - 없으면 필요한 파일들만 받아서 배치
     - offline=True면 네트워크 없이 로컬만 사용
     """
-    global logger
+    logger = get_logger()
     logger.debug(f"prepare_model called with model_id={model_id}, model_path={model_path}, device={device}, offline={offline}")
 
     t0 = time.time()
@@ -205,42 +299,38 @@ def retrieve(query, vectorizer, X, chunks, top_k=TOP_K):
 
 # 프롬프트 생성
 
-def build_prompt(user_question, retrieved):
+def build_prompt(user_question, retrieved, prompt_template=RAG_PROMPT):
     src_lines = []
     for rank, (idx, score, text) in enumerate(retrieved, start=1):
         clipped = textwrap.shorten(text.replace("\n", " "), width=800, placeholder=" …")
         src_lines.append(f"[S{rank}] {clipped}")
     context_block = "\n".join(src_lines) if src_lines else "(컨텍스트 없음)"
-    user_prompt = (
-        f"지식 컨텍스트:\n{context_block}\n\n"
-        f"질문: {user_question}\n\n"
-        "규칙:\n"
-        "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
-        "1) 컨텍스트에 있는 정보만 사용.\n"
-        "2) 없으면 '모르겠습니다.<끝>'라고 답변.\n"
-        "4) 3문장 이내로 간결히.\n"
-    )
+    if is_debug_mode():
+        prompt_template = read_rag_prompt_from_file()
+        print("🔍 검색된 컨텍스트 블록:\n", context_block)
+        print("🔍 사용자 질문:\n", user_question)
+        print("🔍 RAG 프롬프트:\n", RAG_PROMPT)
+    user_prompt = prompt_template.replace("[CONTEXT_BLOCK]", context_block).replace("[USER_QUESTION]", user_question)
     return user_prompt
 
-def build_prompt_for_translation(user_question):
-    user_prompt = (
-        f"다음 문장을 영어로 번역해 주세요:\n\"{user_question}\"\n\n"
-        "규칙:\n"
-        "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
-        "1) 정확하고 자연스럽게 번역할 것.\n"
-        "2) 문화적 맥락을 고려할 것.\n"
-        "3) 문법적으로 올바르게 작성할 것.\n"
-        "4) 대답에 한글은 절대로 들어가면 안됨.\n"
-#        "4) 너무 길지 않게 2문장 이내로 간결히.\n"
-    )
+
+def build_prompt_for_translation(user_question, prompt_template=TRANSLATION_PROMPT):
+    if is_debug_mode():
+        prompt_template = read_translation_prompt_from_file()
+        print("🔍 사용자 질문(번역용):\n", user_question)
+        print("🔍 번역 프롬프트:\n", prompt_template)
+    user_prompt = prompt_template.replace("[USER_QUESTION]", user_question)
     return user_prompt
 
 # 답변 생성
 
-def generate_answer(pipe, prompt, max_length=200):
+def generate_answer(pipe, prompt, max_length=MAX_LENGTH):
     answer = pipe.generate(prompt, max_length=max_length)
     if "<끝>" in answer:
         answer = answer.split("<끝>")[0].strip()
     if "(끝)" in answer:
         answer = answer.split("(끝)")[0].strip()
     return answer
+
+if __name__ == "__main__":
+    pass  # 테스트용 엔트리포인트는 없음

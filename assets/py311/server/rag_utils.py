@@ -7,19 +7,22 @@ import olefile
 #import hwp5
 import PyPDF2
 import logging
+from logging.handlers import TimedRotatingFileHandler
 
 # Extract text from pptx files using python-pptx
 from pptx import Presentation
 # Read HWPX file (XML-based Hangul document)
 import xml.etree.ElementTree as ET
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 BEGIN_TIME = time.time()
 
 _logger = None
+FILE_LOGGING_ENABLED = False
 
 def get_logger():
     global _logger
+
     if _logger is not None:
         return _logger
 
@@ -27,29 +30,55 @@ def get_logger():
     logger = logging.getLogger("CogApp")
     logger.setLevel(logging.DEBUG)
 
-    # make logger to save file
-    #handler = logging.FileHandler("app.log")
-    #handler.setLevel(logging.DEBUG)
-    #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    #handler.setFormatter(formatter)
-    #logger.addHandler(handler)
-
     _logger = logger
+
     return logger
+
+
+def is_debug_mode() -> bool:
+    global DEBUG_MODE
+    return DEBUG_MODE
+
+
+def enable_file_logging(log_file_path: str, log_level: int = logging.DEBUG):
+    global FILE_LOGGING_ENABLED
+    global DEBUG_MODE
+
+    if FILE_LOGGING_ENABLED:
+        return  # 이미 파일 로깅이 활성화된 경우
+
+    log_file_path = log_file_path.replace("/", os.sep)
+    DEBUG_MODE = True
+
+    # if log_file_path is not writable:
+    if not os.access(os.path.dirname(log_file_path), os.W_OK):
+        # create directory if not exists
+        os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+    FILE_LOGGING_ENABLED = True
+    logger = get_logger()
+    # TimedRotatingFileHandler로 교체 (매일 자정마다 rotate)
+    handler = TimedRotatingFileHandler(log_file_path, when="midnight", interval=1, backupCount=7, encoding="utf-8")
+    handler.suffix = "%Y-%m-%d"  # 파일명에 날짜 추가
+    handler.setLevel(log_level)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 
 def print_elapsed_time_and_update(tag: str, begin_time: float = None):
     global BEGIN_TIME
-    global DEBUG_MODE
+    
+    logger = get_logger()
 
     if begin_time is not None:
         BEGIN_TIME = begin_time
-        print(f"BEGIN_TIME initialized to {BEGIN_TIME}")
+        #print(f"BEGIN_TIME initialized to {BEGIN_TIME}")
         return
     assert BEGIN_TIME > 0, "BEGIN_TIME이 초기화되지 않았습니다."
 
-    if DEBUG_MODE:
-        print(f"Time for {tag}: {time.time() - BEGIN_TIME:.2f} seconds")
+    if is_debug_mode():
+        logger.debug(f"Time for {tag}: {time.time() - BEGIN_TIME:.2f} seconds")
     BEGIN_TIME = time.time()
 
 
