@@ -1,0 +1,21 @@
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400&family=Noto+Sans+KR:wght@400&display=swap');
+
+/* ChatMain Component Styles */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag-region {
+  -webkit-app-region: no-drag;
+}
+
+/* Input styling */
+input::placeholder {
+  color: #858585;
+}
+
+/* Transition effects for buttons */
+.transition-colors {
+  transition: background-color 0.2s ease;
+}

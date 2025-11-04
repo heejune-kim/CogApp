@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-d
 import Service1 from './Service1';
 import Service2 from './Service2';
 import Service3 from './Service3';
+import ChatMain from './ChatMain';
 import './Main.css';
 import imgQuillHamburger from '../assets/figma/quill-hamburger.svg';
 import imgGroup from '../assets/figma/settings-group.svg';
@@ -144,6 +145,7 @@ export default function Main() {
     <Router>
       <Routes>
         <Route path="/" element={<MainHome />} />
+        <Route path="/chat" element={<ChatMain />} />
         <Route path="/service1" element={<Service1 />} />
         <Route path="/service2" element={<Service2 />} />
         <Route path="/service3" element={<Service3 />} />
