@@ -235,7 +235,7 @@ export default function DocSummary() {
                   className="bg-[#387aff] box-border content-stretch flex gap-[10px] items-center justify-center px-[10px] py-[6px] rounded-[5px] cursor-pointer"
                   onClick={handleUploadButtonClick}
                 >
-                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-semibold text-[14px] text-white">
+                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-semibold text-[14px] text-white whitespace-nowrap">
                     파일 선택하기
                   </p>
                 </div>
