@@ -1,0 +1,40 @@
+/* Common styles for all components */
+
+/* Drag region for window title bar */
+.drag-region {
+  -webkit-app-region: drag;
+  cursor: move;
+}
+
+.no-drag-region {
+  -webkit-app-region: no-drag;
+  cursor: default;
+}
+
+/* Scrollable chat content area */
+.scrollable-chat-content {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.scrollable-chat-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-chat-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollable-chat-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+/* Auto-expanding textarea */
+.auto-expand-textarea {
+  resize: none;
+  overflow: hidden;
+  min-height: 24px;
+  max-height: 200px;
+}

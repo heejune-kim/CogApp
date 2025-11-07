@@ -62,7 +62,11 @@ function createWindow() {
   win.setMenuBarVisibility(false);
 
   if (process.env.NODE_ENV === 'development') {
-    win.loadURL('http://localhost:3000');
+    //win.loadURL('http://localhost:3000');
+    const DEV_URL = process.env.DEV_SERVER_URL || 'http://localhost:3000';
+    win.loadURL(DEV_URL);
+    console.log('Loading URL:', DEV_URL);
+ 
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
     win.loadFile(path.join(__dirname, 'dist/renderer/index.html'));
@@ -236,7 +240,7 @@ app.whenReady().then(() => {
   });
 
   //startPython();
-  launchPython();  // Python 인터프리터로 server.py 실행
+  //launchPython();  // Python 인터프리터로 server.py 실행
   createWindow();
 });
 

@@ -62,7 +62,7 @@ def read_rag_prompt_from_file(prompt_path: str = None) -> str:
     return None
 
 
-def read_translation_prompt_from_file(prompt_path: str = None) -> str:
+def read_translation_prompt_from_file(prompt_path: str = None, from_lang: str = None, to_lang: str = None) -> str:
     global TRANSLATION_PROMPT
 
     if prompt_path is None:
@@ -314,14 +314,58 @@ def build_prompt(user_question, retrieved, prompt_template=RAG_PROMPT):
     return user_prompt
 
 
-def build_prompt_for_translation(user_question, prompt_template=TRANSLATION_PROMPT):
+def lang_code_to_name(lang_code: str) -> str:
+    lang_map = {
+        "KO": "한국어",
+        "EN": "영어",
+        "JA": "일본어",
+        "ZH": "중국어",
+        "FR": "프랑스어",
+        "DE": "독일어",
+        "ES": "스페인어",
+        "IT": "이탈리아어",
+        "RU": "러시아어",
+        "PT": "포르투갈어",
+    }
+    return lang_map.get(lang_code.upper(), lang_code)
+
+def build_prompt_for_translation(user_question, from_lang, to_lang, prompt_template=TRANSLATION_PROMPT):
     if is_debug_mode():
-        prompt_template = read_translation_prompt_from_file()
+        prompt_template = read_translation_prompt_from_file(from_lang=from_lang, to_lang=to_lang)
         print("🔍 사용자 질문(번역용):\n", user_question)
         print("🔍 번역 프롬프트:\n", prompt_template)
+
+    from_lang = lang_code_to_name(from_lang)
+    to_lang = lang_code_to_name(to_lang)
+
+    user_prompt = prompt_template.replace("[USER_QUESTION]", user_question)
+    user_prompt = user_prompt.replace("[FROM_LANG]", from_lang)
+    user_prompt = user_prompt.replace("[TO_LANG]", to_lang)
+    return user_prompt
+
+def build_prompt_for_summarization(user_question):
+    prompt_template = (
+        #"다음 글을 간결하게 요약해 주세요:\n\"[USER_QUESTION]\"\n\n"
+        "다음 규칙에 따라 글을 작성해 주세요:\n"
+        "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
+        "1) 핵심 내용만 포함할 것.\n"
+        "2) 7문장 이내로 간결히 내용 요약.\n"
+        "요약할 내용:\n\"[USER_QUESTION]\"\n"
+    )
     user_prompt = prompt_template.replace("[USER_QUESTION]", user_question)
     return user_prompt
 
+def build_prompt_for_title(user_question):
+    prompt_template = (
+        "다음 글의 적절한 제목을 지어 주세요:\n\"[USER_QUESTION]\"\n\n"
+        "규칙:\n"
+        "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
+        "1) 글의 핵심을 잘 나타낼 것.\n"
+        "2) 너무 길지 않게 20자 이내로 작성할 것.\n"
+        "3) 한국어로 작성할 것.\n"
+    )
+    user_prompt = prompt_template.replace("[USER_QUESTION]", user_question)
+    return user_prompt
 # 답변 생성
 
 def generate_answer(pipe, prompt, max_length=MAX_LENGTH):

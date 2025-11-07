@@ -20,7 +20,8 @@
       "Bash(npm run python:build:*)",
       "Bash(while [ ! -f \"dist/server.exe\" ])",
       "Bash(../python.exe server.py)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm run build:renderer:*)"
     ],
     "deny": [],
     "ask": []

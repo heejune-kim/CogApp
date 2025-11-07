@@ -14,6 +14,8 @@ from rag import (
     load_model,
     set_file_path,
     one_time_rag,
+    summarize,
+    get_title,
     translate,
     set_data_path,
     set_model_info,
@@ -64,6 +66,11 @@ class RagPathIn(BaseModel):
 class ChatMessage(BaseModel):
     question: str
     answer: str = None
+
+class TranslateMessage(BaseModel):
+    text: str
+    from_lang: str
+    to_lang: str
 
 
 def handle_signal(signum, frame):
@@ -198,7 +205,11 @@ async def set_rag_path(payload: RagPathIn, request: Request):
     logger = get_logger()
     logger.debug(f"PUT /set-rag-path/ from {request.client.host} with {payload}")
     RAG_PATH = payload.rag_path
-    CHUNKS, VECTORIZER, X = set_file_path(RAG_PATH)
+    try :
+        CHUNKS, VECTORIZER, X = set_file_path(RAG_PATH)
+    except Exception as e:
+        logger.error(f"Error setting RAG path: {e}")
+        return {"error": f"Error: {e}"}
     logger.info(f"RAG_PATH set to: {RAG_PATH}")
     return {"status": f"RAG_PATH set to {RAG_PATH}"}
 
@@ -230,21 +241,35 @@ async def chat_msg(message: ChatMessage, request: Request):
     #message.answer = ttt
     return {"status": f"{message.answer}"}
 
+@app.post("/summarize/")
+async def chat_msg(message: RagPathIn, request: Request):
+    global CHUNKS, VECTORIZER, X, PIPE
+    logger = get_logger()
+    logger.debug(f"POST /summarize/ from {request.client.host} with filepath: {message.rag_path}")
+    answer = summarize(filepath=message.rag_path, pipe=PIPE)
+    #message.answer = ttt
+    return {"status": f"{answer}"}
+
+
 @app.post("/chat-msg-manual/")
 async def chat_msg_manual(message: ChatMessage, request: Request):
     global CHUNKS_MANUAL, VECTORIZER_MANUAL, X_MANUAL, PIPE
     logger = get_logger()
     logger.debug(f"POST /chat-msg-manual/ from {request.client.host} with question: {message.question}")
-    message.answer = one_time_rag(input_str=message.question, vectorizer=VECTORIZER_MANUAL, X=X_MANUAL, chunks=CHUNKS_MANUAL, pipe=PIPE)
-    return {"status": f"{message.answer}"}
+    answer = one_time_rag(input_str=message.question, vectorizer=VECTORIZER_MANUAL, X=X_MANUAL, chunks=CHUNKS_MANUAL, pipe=PIPE)
+    title = get_title(input_str=answer, pipe=PIPE)
+    return {
+        "status": f"{answer}",
+        "title": f"{title}",
+    }
 
 @app.post("/chat-msg-translate/")
-async def chat_msg_translate(message: ChatMessage, request: Request):
+async def chat_msg_translate(message: TranslateMessage, request: Request):
     global PIPE
     logger = get_logger()
-    logger.debug(f"POST /chat-msg-translate/ from {request.client.host} with question: {message.question}")
-    message.answer = translate(input_str=message.question, pipe=PIPE)
-    return {"status": f"{message.answer}"}
+    logger.debug(f"POST /chat-msg-translate/ from {request.client.host} with question: {message.text}")
+    answer = translate(input_str=message.text, from_lang=message.from_lang, to_lang=message.to_lang, pipe=PIPE)
+    return {"status": f"{answer}"}
 
 
 """

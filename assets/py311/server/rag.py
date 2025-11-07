@@ -10,6 +10,8 @@ from rag_core import (
     retrieve,
     build_prompt,
     build_prompt_for_translation,
+    build_prompt_for_summarization,
+    build_prompt_for_title,
     generate_answer,
     TOP_K,
     MAX_LENGTH
@@ -77,9 +79,29 @@ def one_time_rag(input_str, vectorizer, X, chunks, pipe, max_length=MAX_LENGTH, 
     outputs = generate_answer(pipe, prompt, max_length=max_length)
     return outputs
 
-def translate(input_str, pipe, max_length=MAX_LENGTH, top_k=TOP_K) -> str:
+
+def summarize(filepath: str, pipe, max_length=MAX_LENGTH) -> str:
     logger = get_logger()
-    prompt = build_prompt_for_translation(input_str)
+    contents = read_file(filepath)
+    prompt = build_prompt_for_summarization(contents)
+    logger.debug(prompt)
+    logger.debug("🤖 AI 응답 생성 중...")
+    outputs = generate_answer(pipe, prompt, max_length=max_length)
+    return outputs
+
+
+def get_title(input_str: str, pipe, max_length=MAX_LENGTH) -> str:
+    logger = get_logger()
+    prompt = build_prompt_for_title(input_str)
+    logger.debug(prompt)
+    logger.debug("🤖 AI 응답 생성 중...")
+    outputs = generate_answer(pipe, prompt, max_length=max_length)
+    return outputs
+
+
+def translate(input_str: str, from_lang: str, to_lang: str, pipe, max_length=MAX_LENGTH, top_k=TOP_K) -> str:
+    logger = get_logger()
+    prompt = build_prompt_for_translation(input_str, from_lang, to_lang)
     logger.debug(prompt)
     logger.debug("🤖 AI 응답 생성 중...")
     outputs = generate_answer(pipe, prompt, max_length=max_length)
