@@ -160,9 +160,15 @@ export default function DocSummary() {
             //isLeftPanelOpen ? 'w-[220px]' : 'w-0 overflow-hidden'
           }`}
         >
-          <div className="h-full overflow-clip relative w-[220px]">
+          {/* UPDATED: Panel width changes from 220px to 317px */}
+          <div className={`h-full overflow-clip relative transition-all duration-300 ${
+            isLeftPanelOpen ? 'w-[220px]' : 'w-[317px]'
+          }`}>
             {/* Panel Header */}
-            <div className="absolute content-stretch flex items-center justify-between left-[20px] top-[21px] w-[180px]">
+            {/* UPDATED: Header width changes from 180px to 277px */}
+            <div className={`absolute content-stretch flex items-center justify-between left-[20px] transition-all duration-300 ${
+              isLeftPanelOpen ? 'top-[21px] w-[180px]' : 'top-[30px] w-[277px]'
+            }`}>
               <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-medium text-[#333333] text-[16px] text-center">
                 파일 올리기
               </p>
@@ -193,9 +199,16 @@ export default function DocSummary() {
             </div>
 
             {/* File Upload Box */}
-            <div className="absolute left-[20px] top-[75px]">
+            {/* UPDATED: Position and width changes based on panel state */}
+            <div className={`absolute left-[20px] transition-all duration-300 ${
+              isLeftPanelOpen ? 'top-[75px]' : 'top-[74px]'
+            }`}>
               <div
-                className="bg-[#f3f3f3] box-border content-stretch flex flex-col gap-[15px] items-center p-[40px] rounded-[16px] w-[180px] hover:bg-[#e8e8e8] transition-colors"
+                className={`box-border content-stretch flex flex-col gap-[15px] items-center p-[40px] rounded-[16px] transition-all duration-300 ${
+                  isLeftPanelOpen
+                    ? 'bg-[#f3f3f3] w-[180px] hover:bg-[#e8e8e8]'
+                    : 'bg-[#f1f1f1] w-[277px] hover:bg-[#e5e5e5]'
+                }`}
               >
                 <div
                   className="content-stretch flex flex-col gap-[7px] items-center"
@@ -230,9 +243,12 @@ export default function DocSummary() {
             </div>
 
             {/* Uploaded File Display */}
+            {/* UPDATED: Width changes from 180px to 277px when panel expands */}
             {uploadedFile && (
               <div className="absolute left-[20px] top-[303px]">
-                <div className="bg-[#f1f1f1] box-border content-stretch flex gap-[10px] items-center p-[20px] rounded-[16px] w-[180px]">
+                <div className={`bg-[#f1f1f1] box-border content-stretch flex gap-[10px] items-center p-[20px] rounded-[16px] transition-all duration-300 ${
+                  isLeftPanelOpen ? 'w-[180px]' : 'w-[277px]'
+                }`}>
                   <div className="basis-0 content-stretch flex flex-col gap-[8px] grow min-h-px min-w-px overflow-clip">
                     <div className="content-stretch flex gap-[5px] items-center w-full">
                       <div className="relative shrink-0 size-[24px]">
