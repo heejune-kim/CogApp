@@ -54,7 +54,7 @@ export default function NavigationDropdown() {
   return (
     <div
       ref={dropdownRef}
-      className="absolute bg-white border-[#cacaca] border-b border-solid box-border content-stretch flex gap-[16px] h-[44px] items-center left-0 px-[20px] py-0 top-[48px] w-[1024px] z-40"
+      className="absolute bg-white border-[#cacaca] border-b border-solid box-border content-stretch flex gap-[16px] h-[44px] items-center left-0 px-[20px] py-0 top-[48px] w-full z-40"
     >
       <div className="relative">
         {/* Dropdown Trigger */}

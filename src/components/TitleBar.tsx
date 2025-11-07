@@ -23,7 +23,7 @@ export default function TitleBar({ title = 'Chat' }: TitleBarProps) {
 
   return (
     <div
-      className="absolute bg-white h-[48px] left-0 overflow-clip top-0 w-[1024px] drag-region z-50"
+      className="absolute bg-white h-[48px] left-0 overflow-clip top-0 w-full drag-region z-50"
       onMouseDown={handleTitleBarDrag}
     >
       {/* Logo and Title */}
@@ -37,7 +37,7 @@ export default function TitleBar({ title = 'Chat' }: TitleBarProps) {
       </div>
 
       {/* Window Control Buttons */}
-      <div className="absolute bg-white content-stretch flex items-center left-[876px] top-[8px] no-drag-region">
+      <div className="absolute bg-white content-stretch flex items-center right-0 top-[8px] no-drag-region">
         {/* Minimize Button */}
         <div
           className="h-[32px] relative shrink-0 w-[46px] cursor-pointer hover:bg-gray-100 transition-colors"
