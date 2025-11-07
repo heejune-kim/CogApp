@@ -38,21 +38,32 @@ export default function DocSummary() {
 
   const sendFilePathToServer = async (filePath: string) => {
     setState('PROCESSING');
-    try {
-      const request = await fetch('http://localhost:8000/summarize/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ rag_path: filePath }),
-      });
-      const answerRes = await request.json();
-      const answerText = answerRes?.status || '응답을 가져올 수 없습니다.';
-      setSummaryResult(answerText);
-      setState('COMPLETED');
-    } catch (error) {
-      console.error('Summary API error:', error);
-      setState('INITIAL');
+    var is_sent = false;
+    for (let i = 0; i < 5; i++) {
+      console.log(`Sending file path to server, attempt ${i + 1}: ${filePath}`);
+      try {
+        const request = await fetch('http://localhost:8000/summarize/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ rag_path: filePath }),
+        });
+        const answerRes = await request.json();
+        const answerText = answerRes?.status || '응답을 가져올 수 없습니다.';
+        setSummaryResult(answerText);
+        setState('COMPLETED');
+        is_sent = true;
+        break; // 성공 시 루프 종료
+      } catch (error) {
+        console.error('Summary API error:', error);
+        // sleep for a short time before retrying
+        await new Promise(res => setTimeout(res, 5000));
+      }
+    }
+    if (!is_sent) {
+        alert('내부 오류가 발생했습니다.');
+        setState('INITIAL');
     }
   };
 
@@ -282,9 +293,9 @@ export default function DocSummary() {
             <div className="w-full max-w-[600px] px-[20px]">
             {/* STATE: INITIAL - Show instruction message */}
             {state === 'INITIAL' && (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[32px] text-black mb-[24px]">
+              <div className="flex items-start justify-start h-full pt-[152px]">
+                <div>
+                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal leading-[normal] text-[32px] text-black text-nowrap">
                     파일을 작업창에 업로드 해주세요.
                   </p>
                   {/*

@@ -254,3 +254,25 @@ def read_text(path):
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         return f.read()
 
+
+def remove_quots(s: str) -> str:
+    """
+    문자열에서 모든 따옴표(큰따옴표 및 작은따옴표)를 제거합니다.
+
+    Parameters
+    ----------
+    s : str
+        입력 문자열
+
+    Returns
+    -------
+    str
+        따옴표가 제거된 문자열
+    """
+    if not s or len(s) < 2:
+        return s
+    if s[0] == '"' or s[0] == "'":
+        s = s[1:]
+    if s and (s[-1] == '"' or s[-1] == "'"):
+        s = s[:-1]
+    return s

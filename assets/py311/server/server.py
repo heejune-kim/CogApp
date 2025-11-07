@@ -15,6 +15,7 @@ from rag import (
     set_file_path,
     one_time_rag,
     summarize,
+    get_title_using_question,
     get_title,
     translate,
     set_data_path,
@@ -23,6 +24,7 @@ from rag import (
 from rag_utils import (
     get_logger,
     enable_file_logging,
+    remove_quots,
 )
 from rag_core import (
     set_prompts,
@@ -239,7 +241,7 @@ async def chat_msg(message: ChatMessage, request: Request):
     logger.debug(f"POST /chat-msg/ from {request.client.host} with question: {message.question}")
     message.answer = one_time_rag(input_str=message.question, vectorizer=VECTORIZER, X=X, chunks=CHUNKS, pipe=PIPE)
     #message.answer = ttt
-    return {"status": f"{message.answer}"}
+    return {"status": f"{remove_quots(message.answer)}"}
 
 @app.post("/summarize/")
 async def chat_msg(message: RagPathIn, request: Request):
@@ -248,7 +250,7 @@ async def chat_msg(message: RagPathIn, request: Request):
     logger.debug(f"POST /summarize/ from {request.client.host} with filepath: {message.rag_path}")
     answer = summarize(filepath=message.rag_path, pipe=PIPE)
     #message.answer = ttt
-    return {"status": f"{answer}"}
+    return {"status": f"{remove_quots(answer)}"}
 
 
 @app.post("/chat-msg-manual/")
@@ -257,10 +259,11 @@ async def chat_msg_manual(message: ChatMessage, request: Request):
     logger = get_logger()
     logger.debug(f"POST /chat-msg-manual/ from {request.client.host} with question: {message.question}")
     answer = one_time_rag(input_str=message.question, vectorizer=VECTORIZER_MANUAL, X=X_MANUAL, chunks=CHUNKS_MANUAL, pipe=PIPE)
+    #title = get_title_using_question(input_str=message.question, pipe=PIPE)
     title = get_title(input_str=answer, pipe=PIPE)
     return {
-        "status": f"{answer}",
-        "title": f"{title}",
+        "status": f"{remove_quots(answer)}",
+        "title": f"{remove_quots(title)}",
     }
 
 @app.post("/chat-msg-translate/")
@@ -269,7 +272,7 @@ async def chat_msg_translate(message: TranslateMessage, request: Request):
     logger = get_logger()
     logger.debug(f"POST /chat-msg-translate/ from {request.client.host} with question: {message.text}")
     answer = translate(input_str=message.text, from_lang=message.from_lang, to_lang=message.to_lang, pipe=PIPE)
-    return {"status": f"{answer}"}
+    return {"status": f"{remove_quots(answer)}"}
 
 
 """

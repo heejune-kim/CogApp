@@ -20,32 +20,6 @@ interface ChatMessage {
   content: string;
 }
 
-const sendFilePathToServer = async (filePath: string) => {
-  const resp = await fetch('http://localhost:8000/set-rag-path/', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ rag_path: filePath }),
-  });
-  const respData = await resp.json();
-  // if respData has error field, handle it accordingly
-  if (respData.error) {
-    console.error('Error from server:', respData.error);
-    alert(`Error setting RAG_PATH: ${respData.error}`);
-    return false;
-  }
-  const answerText = respData?.status || '응답을 가져올 수 없습니다.';
-  console.log('Response from server:', answerText);
-
-  // Get RAG_PATH to confirm
-  const response = await fetch('http://localhost:8000/get-rag-path/');
-  const data = await response.json();
-  console.log('Current RAG_PATH:', data.RAG_PATH);
-  //alert(`RAG_PATH set to: ${data.RAG_PATH}`);
-
-  return true;
-};
 
 /**
  * DocChat Component - 문서 질의하기
@@ -81,11 +55,9 @@ export default function DocChat() {
       }));
       // TODO: get paths and send to server
       const paths = Array.from(newFiles.map(f => window.electronAPI.getPathForFile(f.file)));
-      const res = sendFilePathToServer(paths[0]); // Assuming single file for RAG_PATH
+      const res = sendFilePathToServer(paths[0], newFiles); // Assuming single file for RAG_PATH
       if (!res) { return; }
       //alert(`RAG_PATH set to: ${paths[0]}`);
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      setState('FILE_UPLOADED');
     }
   };
 
@@ -101,6 +73,45 @@ export default function DocChat() {
       fileInputRef.current.value = '';
     }
   };
+
+  const sendFilePathToServer = async (filePath: string, newFiles: UploadedFile[]) => {
+    var is_sent = false;
+    for (let i = 0; i < 5; i++) {
+      console.log(`Sending file path to server, attempt ${i + 1}: ${filePath}`);
+      try {
+        const resp = await fetch('http://localhost:8000/set-rag-path/', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ rag_path: filePath }),
+        });
+        const respData = await resp.json();
+        // if respData has error field, handle it accordingly
+        if (respData.error) {
+          console.error('Error from server:', respData.error);
+          alert(`Error setting RAG_PATH: ${respData.error}`);
+          return false;
+        }
+        const answerText = respData?.status || '응답을 가져올 수 없습니다.';
+        console.log('Response from server:', answerText);
+        is_sent = true;
+        setUploadedFiles(prev => [...prev, ...newFiles]);
+        setState('FILE_UPLOADED');
+        break; // 성공 시 루프 종료
+      } catch (error) {
+        console.error('Error sending file path to server:', error);
+        // sleep for a short time before retrying
+        await new Promise(res => setTimeout(res, 5000));
+      }
+    }
+    if (!is_sent) {
+      alert('내부 오류가 발생했습니다.');
+      return false;
+    }
+    return true;
+  };
+
 
   // Send message handler
   const handleSendMessage = async () => {
@@ -122,6 +133,9 @@ export default function DocChat() {
       }
     }, 100);
 
+    var is_sent = false;
+    for (let i = 0; i < 5; i++) {
+      console.log(`Sending question to server, attempt ${i + 1}: ${inputText}`);
     // TODO: Call REST API to get answer from document
     // Example API call structure:
     try {
@@ -149,8 +163,17 @@ export default function DocChat() {
           chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
       }, 100);
+      is_sent = true;
+      break;
     } catch (error) {
       console.error('DocChat API error:', error);
+      // sleep for a short time before retrying
+      await new Promise(res => setTimeout(res, 5000));
+    }
+    }
+    if (!is_sent) {
+      alert('내부 오류가 발생했습니다.');
+      return;
     }
 
     // MOCK: Simulate API call with timeout
@@ -194,10 +217,8 @@ export default function DocChat() {
         file
       }));
       const paths = Array.from(newFiles.map(f => window.electronAPI.getPathForFile(f.file)));
-      const res = sendFilePathToServer(paths[0]); // Assuming single file for RAG_PATH
+      const res = sendFilePathToServer(paths[0], newFiles); // Assuming single file for RAG_PATH
       if (!res) { return; }
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      setState('FILE_UPLOADED');
     }
   };
 
@@ -335,112 +356,130 @@ export default function DocChat() {
 
         {/* MAIN CONTENT AREA */}
         <div className={`absolute top-0 bottom-0 right-0 transition-all duration-300 ${isLeftPanelOpen ? 'left-[220px]' : 'left-[317px]'}`}>
-          <div className="relative w-full h-full flex flex-col">
-            {/* Chat Messages Area */}
-            <div
-              ref={chatContainerRef}
-              className="flex-1 overflow-y-auto scrollable-chat-content flex justify-center py-[40px]"
-            >
-              <div className="w-full max-w-[600px] px-[20px]">
-              {/* STATE: INITIAL - Show instruction message */}
-              {state === 'INITIAL' && (
-                <div className="flex items-center justify-center h-full">
-                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[32px] text-black text-center">
-                    파일을 작업창에 업로드 해주세요.
-                  </p>
-                </div>
-              )}
-
-              {/* STATE: FILE_UPLOADED - Show ready message */}
-              {state === 'FILE_UPLOADED' && messages.length === 0 && (
-                <div className="flex items-center justify-center h-full">
-                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[32px] text-black text-center">
-                    어떤 점이 궁금하세요?
-                  </p>
-                </div>
-              )}
-
-              {/* STATE: CHAT_ACTIVE - Show conversation */}
-              {messages.length > 0 && (
-                <div className="content-stretch flex flex-col gap-[40px] w-full">
-                  {messages.map((message, index) => (
-                    <div key={index} className="w-full">
-                      {message.role === 'user' ? (
-                        // User Message
-                        <div className="content-stretch flex gap-[16px] items-center justify-end">
-                          <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[16px] text-black text-right max-w-[500px]">
-                            {message.content}
-                          </p>
-                          <div className="overflow-clip rounded-[16px] shrink-0 size-[32px]">
-                            <img alt="User" className="size-full object-cover" src={imgUserAvatar} />
-                          </div>
-                        </div>
-                      ) : (
-                        // Assistant Message
-                        <div className="content-stretch flex flex-col gap-[10px] items-start overflow-clip rounded-[24px] w-full">
-                          <div className="bg-white box-border content-stretch flex flex-col gap-[16px] items-start justify-center px-[16px] py-[24px] w-full">
-                            <div className="content-stretch flex gap-[16px] items-center">
-                              <div className="relative shrink-0 size-[32px]">
-                                <img alt="Assistant" className="block max-w-none size-full" src={imgPrimeUpload} />
-                              </div>
-                              <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[16px] text-black">
-                                요청하신 질문에 대한 답변입니다.
-                              </p>
-                            </div>
-                            <div className="h-[1px] bg-[#e0e0e0] w-full" />
-                            <div className="content-stretch flex flex-col gap-[12px] items-start w-full">
-                              <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal leading-[24px] text-[16px] text-black w-full">
-                                {message.content}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              </div>
-            </div>
-
-            {/* Input Area - Always at bottom */}
-            <div className="flex justify-center pb-[40px] px-[20px]">
-              <div className="content-stretch flex flex-col gap-[8px] items-center w-full max-w-[600px]">
-                <div className="bg-white box-border content-stretch flex items-center justify-between overflow-clip px-[20px] py-[8px] rounded-[9999px] w-full">
-                  <div className="relative shrink-0 size-[32px] cursor-pointer opacity-50">
-                    <img alt="Upload" className="block max-w-none size-full" src={imgPrimeUpload} />
-                  </div>
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="텍스트를 입력해주세요."
-                    disabled={uploadedFiles.length === 0}
-                    className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[16px] text-black placeholder:text-[#858585] bg-transparent border-none outline-none flex-1 mx-[16px] disabled:opacity-50"
-                  />
-                  <div
-                    className={`relative shrink-0 size-[24px] ${
-                      uploadedFiles.length > 0 && inputText.trim()
-                        ? 'cursor-pointer'
-                        : 'opacity-50 cursor-not-allowed'
-                      /*
-                        ? 'cursor-pointer hover:opacity-70'
-                        : 'opacity-50 cursor-not-allowed'
-                      */
-                    }`}
-                    onClick={handleSendMessage}
-                  >
-                    <img alt="Send" className="block max-w-none size-full" src={imgMynauiSend} />
-                  </div>
-                  {/*<div className="absolute inset-0 pointer-events-none shadow-[0px_0px_4px_0px_inset_rgba(0,0,0,0.2)] rounded-[9999px]" />*/}
-                </div>
-                <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[#858585] text-[10px] text-center tracking-[-0.4px]">
-                  Galaxy on Chat은 실수 할 수 있습니다. 중요 정보는 원문 문서를 재확인 해주세요.
+          {messages.length === 0 ? (
+            // INITIAL/FILE_UPLOADED: Show instruction message with input area below
+            <div className="relative w-full h-full flex items-center justify-center">
+              <div className="content-stretch flex flex-col gap-[42px] items-center w-[600px]">
+                {/* Instruction Message */}
+                <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[32px] text-black text-center">
+                  {state === 'INITIAL' ? '파일을 업로드 해주세요.' : '어떤 점이 궁금하세요?'}
                 </p>
+
+                {/* Input Area */}
+                <div className="content-stretch flex flex-col gap-[8px] items-center w-full">
+                  <div className="bg-white box-border content-stretch flex items-center justify-between overflow-clip px-[20px] py-[8px] rounded-[9999px] w-full">
+                    <div className="relative shrink-0 size-[32px]">
+                      <img alt="Upload" className="block max-w-none size-full" src={imgPrimeUpload} />
+                    </div>
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="텍스트를 입력해주세요."
+                      disabled={uploadedFiles.length === 0}
+                      className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[16px] text-black placeholder:text-[#858585] bg-transparent border-none outline-none flex-1 mx-[16px] disabled:opacity-50"
+                    />
+                    <div
+                      className={`relative shrink-0 size-[24px] ${
+                        uploadedFiles.length > 0 && inputText.trim()
+                          ? 'cursor-pointer'
+                          : 'opacity-50 cursor-not-allowed'
+                      }`}
+                      onClick={handleSendMessage}
+                    >
+                      <img alt="Send" className="block max-w-none size-full" src={imgMynauiSend} />
+                    </div>
+                  </div>
+                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[#858585] text-[10px] text-center tracking-[-0.4px]">
+                    Galaxy on Chat은 실수 할 수 있습니다. 중요 정보는 원문 문서를 재확인 해주세요.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            // CHAT_ACTIVE: Show conversation with input at bottom
+            <div className="relative w-full h-full flex flex-col">
+              {/* Chat Messages Area */}
+              <div
+                ref={chatContainerRef}
+                className="flex-1 overflow-y-auto scrollable-chat-content flex justify-center py-[40px]"
+              >
+                <div className="w-full max-w-[600px] px-[20px]">
+                  <div className="content-stretch flex flex-col gap-[40px] w-full">
+                    {messages.map((message, index) => (
+                      <div key={index} className="w-full">
+                        {message.role === 'user' ? (
+                          // User Message
+                          <div className="content-stretch flex gap-[16px] items-center justify-end">
+                            <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[16px] text-black text-right max-w-[500px]">
+                              {message.content}
+                            </p>
+                            <div className="overflow-clip rounded-[16px] shrink-0 size-[32px]">
+                              <img alt="User" className="size-full object-cover" src={imgUserAvatar} />
+                            </div>
+                          </div>
+                        ) : (
+                          // Assistant Message
+                          <div className="content-stretch flex flex-col gap-[10px] items-start overflow-clip rounded-[24px] w-full">
+                            <div className="bg-white box-border content-stretch flex flex-col gap-[16px] items-start justify-center px-[16px] py-[24px] w-full">
+                              <div className="content-stretch flex gap-[16px] items-center">
+                                <div className="relative shrink-0 size-[32px]">
+                                  <img alt="Assistant" className="block max-w-none size-full" src={imgPrimeUpload} />
+                                </div>
+                                <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[16px] text-black">
+                                  요청하신 질문에 대한 답변입니다.
+                                </p>
+                              </div>
+                              <div className="h-[1px] bg-[#e0e0e0] w-full" />
+                              <div className="content-stretch flex flex-col gap-[12px] items-start w-full">
+                                <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal leading-[24px] text-[16px] text-black w-full">
+                                  {message.content}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Input Area - Fixed at bottom */}
+              <div className="flex justify-center pb-[40px] px-[20px]">
+                <div className="content-stretch flex flex-col gap-[8px] items-center w-full max-w-[600px]">
+                  <div className="bg-white box-border content-stretch flex items-center justify-between overflow-clip px-[20px] py-[8px] rounded-[9999px] w-full">
+                    <div className="relative shrink-0 size-[32px]">
+                      <img alt="Upload" className="block max-w-none size-full" src={imgPrimeUpload} />
+                    </div>
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="텍스트를 입력해주세요."
+                      disabled={uploadedFiles.length === 0}
+                      className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[16px] text-black placeholder:text-[#858585] bg-transparent border-none outline-none flex-1 mx-[16px] disabled:opacity-50"
+                    />
+                    <div
+                      className={`relative shrink-0 size-[24px] ${
+                        uploadedFiles.length > 0 && inputText.trim()
+                          ? 'cursor-pointer'
+                          : 'opacity-50 cursor-not-allowed'
+                      }`}
+                      onClick={handleSendMessage}
+                    >
+                      <img alt="Send" className="block max-w-none size-full" src={imgMynauiSend} />
+                    </div>
+                  </div>
+                  <p className="font-['Inter','Noto_Sans_KR',sans-serif] font-normal text-[#858585] text-[10px] text-center tracking-[-0.4px]">
+                    Galaxy on Chat은 실수 할 수 있습니다. 중요 정보는 원문 문서를 재확인 해주세요.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>

@@ -11,8 +11,8 @@ from rag_utils import (
     is_debug_mode,
 )
 
-CHUNK_SIZE = 900
-CHUNK_OVERLAP = 150
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 100
 TOP_K = 5
 MAX_LENGTH = 200
 
@@ -112,10 +112,6 @@ def set_rag_params(chunk_size: int, chunk_overlap: int, top_k: int, max_length: 
     MAX_LENGTH = max_length
 
 
-CHUNK_SIZE = 900
-CHUNK_OVERLAP = 150
-TOP_K = 5
-MAX_LENGTH = 200
 def _has_openvino_snapshot(local_dir: str) -> bool:
     """IR(xml/bin)와 토크나이저 파일이 있는지 간단히 점검."""
     if not os.path.isdir(local_dir):
@@ -180,7 +176,7 @@ def prepare_model(
     token: str | None = None,
     force_download: bool = False,
     offline: bool = False
-):
+) -> ov_genai.LLMPipeline:
     """
     - model_path에 모델이 완비되어 있으면 그대로 사용
     - 없으면 필요한 파일들만 받아서 배치
@@ -345,15 +341,30 @@ def build_prompt_for_translation(user_question, from_lang, to_lang, prompt_templ
 
 def build_prompt_for_summarization(user_question):
     prompt_template = (
-        #"다음 글을 간결하게 요약해 주세요:\n\"[USER_QUESTION]\"\n\n"
-        "다음 규칙에 따라 글을 작성해 주세요:\n"
+        "다음 글을 요약해 주세요:\n\"[USER_QUESTION]\"\n\n"
+        "규칙:\n"
         "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
         "1) 핵심 내용만 포함할 것.\n"
         "2) 7문장 이내로 간결히 내용 요약.\n"
-        "요약할 내용:\n\"[USER_QUESTION]\"\n"
     )
     user_prompt = prompt_template.replace("[USER_QUESTION]", user_question)
     return user_prompt
+
+
+def build_prompt_for_title_using_question(user_question):
+    prompt_template = (
+        "이 질문에 대한 대답은 어떠한 대답이 되어야 할 것 같은가:\n\"[USER_QUESTION]\"\n\n"
+        "규칙:\n"
+        "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
+        "1) 질문의 핵심을 잘 나타낼 것.\n"
+        "2) 너무 길지 않게 20자 이내로 작성할 것.\n"
+        "3) 한국어로 작성할 것.\n"
+        "4) ~~방법 형태로 대답하기.\n"
+    )
+    user_prompt = prompt_template.replace("[USER_QUESTION]", user_question)
+    return user_prompt
+# 답변 생성
+
 
 def build_prompt_for_title(user_question):
     prompt_template = (
@@ -362,14 +373,18 @@ def build_prompt_for_title(user_question):
         "0) 각 답변의 마지막에 반드시 '<끝>'이라고 적어 종료하세요.\n"
         "1) 글의 핵심을 잘 나타낼 것.\n"
         "2) 너무 길지 않게 20자 이내로 작성할 것.\n"
-        "3) 한국어로 작성할 것.\n"
+        "3) 영어는 한국어로 번역할 것.\n"
     )
     user_prompt = prompt_template.replace("[USER_QUESTION]", user_question)
     return user_prompt
 # 답변 생성
 
-def generate_answer(pipe, prompt, max_length=MAX_LENGTH):
-    answer = pipe.generate(prompt, max_length=max_length)
+def generate_answer(pipe: ov_genai.LLMPipeline, prompt, max_length=MAX_LENGTH):
+    #streamer = ov_genai.TextStreamer(callback=lambda text: print(text, end='', flush=True))  # 콜백 없이 스트리머 생성
+    answer = pipe.generate(prompt,
+                           max_length=max_length,
+                           #max_new_tokens=128,
+    )
     if "<끝>" in answer:
         answer = answer.split("<끝>")[0].strip()
     if "(끝)" in answer:

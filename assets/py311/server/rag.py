@@ -11,6 +11,7 @@ from rag_core import (
     build_prompt,
     build_prompt_for_translation,
     build_prompt_for_summarization,
+    build_prompt_for_title_using_question,
     build_prompt_for_title,
     generate_answer,
     TOP_K,
@@ -84,6 +85,15 @@ def summarize(filepath: str, pipe, max_length=MAX_LENGTH) -> str:
     logger = get_logger()
     contents = read_file(filepath)
     prompt = build_prompt_for_summarization(contents)
+    logger.debug(prompt)
+    logger.debug("🤖 AI 응답 생성 중...")
+    outputs = generate_answer(pipe, prompt, max_length=max_length)
+    return outputs
+
+
+def get_title_using_question(input_str: str, pipe, max_length=MAX_LENGTH) -> str:
+    logger = get_logger()
+    prompt = build_prompt_for_title_using_question(input_str)
     logger.debug(prompt)
     logger.debug("🤖 AI 응답 생성 중...")
     outputs = generate_answer(pipe, prompt, max_length=max_length)
