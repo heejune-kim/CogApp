@@ -240,7 +240,7 @@ app.whenReady().then(() => {
   });
 
   //startPython();
-  //launchPython();  // Python 인터프리터로 server.py 실행
+  launchPython();  // Python 인터프리터로 server.py 실행
   createWindow();
 });
 
