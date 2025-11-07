@@ -160,8 +160,9 @@ export default function Translate() {
           {/* Translation Results Area */}
           <div
             ref={chatContainerRef}
-            className="flex-1 overflow-y-auto scrollable-chat-content px-[212px] py-[40px]"
+            className="flex-1 overflow-y-auto scrollable-chat-content flex justify-center py-[40px]"
           >
+            <div className="w-full max-w-[600px] px-[20px]">
             {/* STATE: INITIAL - Show instruction message */}
             {state === 'INITIAL' && translations.length === 0 && (
               <div className="flex items-center justify-center h-full">
@@ -173,7 +174,7 @@ export default function Translate() {
 
             {/* Translation History */}
             {translations.length > 0 && (
-              <div className="content-stretch flex flex-col gap-[40px] w-full max-w-[600px]">
+              <div className="content-stretch flex flex-col gap-[40px] w-full">
                 {translations.map((trans, index) => (
                   <div key={index} className="content-stretch flex flex-col gap-[16px] w-full">
                     {/* Original Text (User) */}
@@ -212,10 +213,11 @@ export default function Translate() {
                 ))}
               </div>
             )}
+            </div>
           </div>
 
           {/* Input Area - Always at bottom */}
-          <div className="px-[212px] pb-[40px]">
+          <div className="flex justify-center pb-[40px] px-[20px]">
             <div className="content-stretch flex flex-col gap-[8px] items-center w-full max-w-[600px]">
               {/* Input Box with Language Selector */}
               <div className="bg-white box-border content-stretch flex flex-col gap-[10px] items-start overflow-clip px-[20px] py-[8px] rounded-[30px] w-full">

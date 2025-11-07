@@ -278,7 +278,8 @@ export default function DocSummary() {
 
         {/* MAIN CONTENT AREA */}
         <div className={`absolute top-0 bottom-0 right-0 transition-all duration-300 ${isLeftPanelOpen ? 'left-[220px]' : 'left-[317px]'}`}>
-          <div className="relative w-full h-full px-[102px] py-[40px]">
+          <div className="relative w-full h-full flex justify-center py-[40px]">
+            <div className="w-full max-w-[600px] px-[20px]">
             {/* STATE: INITIAL - Show instruction message */}
             {state === 'INITIAL' && (
               <div className="flex items-center justify-center h-full">
@@ -303,7 +304,7 @@ export default function DocSummary() {
             {/* STATE: PROCESSING - Show loading message */}
             {state === 'PROCESSING' && (
               <div className="content-stretch flex flex-col gap-[40px] items-center pt-[40px]">
-                <div className="content-stretch flex flex-col gap-[10px] items-start overflow-clip rounded-[24px] w-full max-w-[600px]">
+                <div className="content-stretch flex flex-col gap-[10px] items-start overflow-clip rounded-[24px] w-full">
                   <div className="bg-white box-border content-stretch flex flex-col gap-[16px] items-start justify-center px-[16px] py-[24px] w-full">
                     <div className="content-stretch flex gap-[16px] items-center">
                       <div className="relative shrink-0 size-[32px]">
@@ -320,8 +321,8 @@ export default function DocSummary() {
 
             {/* STATE: COMPLETED - Show summary result */}
             {state === 'COMPLETED' && (
-              <div className="content-stretch flex flex-col gap-[40px] items-start scrollable-chat-content h-full overflow-y-auto px-[20px]">
-                <div className="content-stretch flex flex-col gap-[10px] items-start w-full max-w-[600px]">
+              <div className="content-stretch flex flex-col gap-[40px] items-start scrollable-chat-content h-full overflow-y-auto">
+                <div className="content-stretch flex flex-col gap-[10px] items-start w-full">
                   <div className="bg-white box-border content-stretch flex flex-col gap-[16px] items-start justify-center px-[16px] py-[24px] rounded-[24px] w-full">
                     <div className="content-stretch flex gap-[16px] items-start">
                       <div className="relative shrink-0 size-[32px]">
@@ -354,6 +355,7 @@ export default function DocSummary() {
                 */}
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>

@@ -339,8 +339,9 @@ export default function DocChat() {
             {/* Chat Messages Area */}
             <div
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto scrollable-chat-content px-[102px] py-[40px]"
+              className="flex-1 overflow-y-auto scrollable-chat-content flex justify-center py-[40px]"
             >
+              <div className="w-full max-w-[600px] px-[20px]">
               {/* STATE: INITIAL - Show instruction message */}
               {state === 'INITIAL' && (
                 <div className="flex items-center justify-center h-full">
@@ -361,7 +362,7 @@ export default function DocChat() {
 
               {/* STATE: CHAT_ACTIVE - Show conversation */}
               {messages.length > 0 && (
-                <div className="content-stretch flex flex-col gap-[40px] w-full max-w-[600px]">
+                <div className="content-stretch flex flex-col gap-[40px] w-full">
                   {messages.map((message, index) => (
                     <div key={index} className="w-full">
                       {message.role === 'user' ? (
@@ -399,10 +400,11 @@ export default function DocChat() {
                   ))}
                 </div>
               )}
+              </div>
             </div>
 
             {/* Input Area - Always at bottom */}
-            <div className="px-[102px] pb-[40px]">
+            <div className="flex justify-center pb-[40px] px-[20px]">
               <div className="content-stretch flex flex-col gap-[8px] items-center w-full max-w-[600px]">
                 <div className="bg-white box-border content-stretch flex items-center justify-between overflow-clip px-[20px] py-[8px] rounded-[9999px] w-full">
                   <div className="relative shrink-0 size-[32px] cursor-pointer opacity-50">
